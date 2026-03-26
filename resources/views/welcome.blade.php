@@ -574,8 +574,20 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
     <p>Découvrez qui nous sommes, nos valeurs, notre mission et nos objectifs au sein du Groupe Scout Saint Nicolas.</p>
   </div>
 
-  <!-- Nos Valeurs -->
+  <!-- Notre Mission -->
   <div class="apropos-section">
+    <div class="section-title">Notre <span>Mission</span></div>
+    <div class="section-bar"></div>
+    <p class="apropos-subtitle">L'essence de notre engagement auprès de la jeunesse burundaise.</p>
+    <div class="mission-box">
+      <div class="mission-icon"><i class="fa-solid fa-bullseye"></i></div>
+      <p>Le Groupe Scout Saint Nicolas a pour mission de contribuer à l'éducation des jeunes à travers un système de valeurs basé sur la Promesse et la Loi scoutes, pour les aider à jouer un rôle constructif dans la société. Nous accompagnons chaque jeune dans son développement personnel, spirituel et social, en leur offrant un cadre propice à l'aventure, à l'apprentissage et au service.</p>
+    </div>
+  </div>
+
+  <!-- Nos Valeurs -->
+  <div class="apropos-section" style="background:var(--gris-clair);margin:0 auto;max-width:100%;padding:3rem 2rem;">
+   <div style="max-width:1100px;margin:0 auto;">
     <div class="section-title">Nos <span>Valeurs</span></div>
     <div class="section-bar"></div>
     <p class="apropos-subtitle">Les valeurs fondamentales qui guident chaque scout dans son parcours au sein de notre groupe.</p>
@@ -601,11 +613,11 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
         <p>S'entraider et grandir ensemble, soutenir chaque membre dans son développement personnel.</p>
       </div>
     </div>
+   </div>
   </div>
 
   <!-- Nos Objectifs -->
-  <div class="apropos-section" style="background:var(--gris-clair);margin:0 auto;max-width:100%;padding:3rem 2rem;">
-    <div style="max-width:1100px;margin:0 auto;">
+  <div class="apropos-section">
       <div class="section-title">Nos <span>Objectifs</span></div>
       <div class="section-bar"></div>
       <p class="apropos-subtitle">Ce que nous cherchons à accomplir à travers notre mouvement scout.</p>
@@ -617,7 +629,6 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
         <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Créer des liens forts entre les membres</span></div>
         <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Préparer les jeunes à être des citoyens actifs</span></div>
       </div>
-    </div>
   </div>
 
   <!-- Nos Unités (résumé) -->
@@ -656,17 +667,6 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
         <div class="ur-age" style="color:#888;">23+ ans</div>
         <p>Les adultes anciens scouts qui restent engagés et accompagnent les jeunes.</p>
       </div>
-    </div>
-  </div>
-
-  <!-- Notre Mission -->
-  <div class="apropos-section" style="padding-bottom:4rem;">
-    <div class="section-title">Notre <span>Mission</span></div>
-    <div class="section-bar"></div>
-    <p class="apropos-subtitle">L'essence de notre engagement auprès de la jeunesse burundaise.</p>
-    <div class="mission-box">
-      <div class="mission-icon"><i class="fa-solid fa-bullseye"></i></div>
-      <p>Le Groupe Scout Saint Nicolas a pour mission de contribuer à l'éducation des jeunes à travers un système de valeurs basé sur la Promesse et la Loi scoutes, pour les aider à jouer un rôle constructif dans la société. Nous accompagnons chaque jeune dans son développement personnel, spirituel et social, en leur offrant un cadre propice à l'aventure, à l'apprentissage et au service.</p>
     </div>
   </div>
 </div>
