@@ -12,10 +12,11 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
             --sidebar-w: 260px;
-            --primary: #1a6b3c;
-            --primary-dark: #134f2c;
-            --primary-light: #e8f5ee;
-            --accent: #f59e0b;
+            --primary: #1a2670;
+            --primary-dark: #0c1445;
+            --primary-light: #e8eaf6;
+            --accent: #C5A028;
+            --accent-light: #D4B030;
             --danger: #dc2626;
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
@@ -36,14 +37,15 @@
         /* Sidebar */
         .sidebar {
             position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
-            background: var(--gray-900); color: #fff; display: flex; flex-direction: column;
+            background: linear-gradient(180deg, #0c1445 0%, #1a2670 100%); color: #fff; display: flex; flex-direction: column;
             z-index: 100; transition: transform .3s;
         }
         .sidebar-brand {
             padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: .75rem;
-            border-bottom: 1px solid rgba(255,255,255,.08); font-weight: 700; font-size: 1.1rem;
+            border-bottom: 1px solid rgba(197,160,40,.2); font-weight: 700; font-size: 1.1rem;
         }
-        .sidebar-brand img { width: 36px; height: 36px; border-radius: 50%; }
+        .sidebar-brand span { color: var(--accent-light); }
+        .sidebar-brand img { width: 36px; height: 36px; }
         .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
         .sidebar-section { padding: .5rem 1.5rem .25rem; font-size: .7rem; text-transform: uppercase;
             letter-spacing: .08em; color: var(--gray-500); font-weight: 600; }
@@ -52,15 +54,16 @@
             color: var(--gray-400); text-decoration: none; font-size: .875rem; font-weight: 500;
             transition: all .15s; border-left: 3px solid transparent;
         }
-        .sidebar-link:hover { color: #fff; background: rgba(255,255,255,.05); }
-        .sidebar-link.active { color: #fff; background: rgba(26,107,60,.3); border-left-color: var(--accent); }
+        .sidebar-link:hover { color: #fff; background: rgba(197,160,40,.08); }
+        .sidebar-link.active { color: var(--accent-light); background: rgba(197,160,40,.12); border-left-color: var(--accent); }
         .sidebar-link i { width: 20px; text-align: center; font-size: .95rem; }
         .sidebar-footer {
-            padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,.08);
+            padding: 1rem 1.5rem; border-top: 1px solid rgba(197,160,40,.2);
             display: flex; align-items: center; gap: .75rem; font-size: .85rem;
         }
         .sidebar-footer .user-avatar {
-            width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+            width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
+            color: var(--primary-dark);
             display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: .8rem;
         }
         .sidebar-footer .user-info { flex: 1; min-width: 0; }
@@ -97,8 +100,8 @@
             justify-content: center; font-size: 1.2rem;
         }
         .stat-icon.green { background: var(--primary-light); color: var(--primary); }
-        .stat-icon.amber { background: #fef3c7; color: #d97706; }
-        .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+        .stat-icon.amber { background: #fdf6e3; color: #9a7b1a; }
+        .stat-icon.blue { background: #e8eaf6; color: var(--primary); }
         .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
         .stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
         .stat-label { font-size: .8rem; color: var(--gray-500); margin-top: .15rem; }
@@ -129,8 +132,8 @@
             font-size: .75rem; font-weight: 600;
         }
         .badge-green { background: var(--primary-light); color: var(--primary-dark); }
-        .badge-amber { background: #fef3c7; color: #92400e; }
-        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-amber { background: #fdf6e3; color: #7a5f10; }
+        .badge-blue { background: #e8eaf6; color: var(--primary); }
         .badge-purple { background: #ede9fe; color: #5b21b6; }
         .badge-gray { background: var(--gray-100); color: var(--gray-600); }
 
@@ -158,7 +161,7 @@
             padding: .55rem .85rem; border: 1px solid var(--gray-300); border-radius: var(--radius);
             font-size: .875rem; font-family: inherit; transition: border-color .15s; background: #fff;
         }
-        .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,107,60,.1); }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,38,112,.1); }
         .form-error { color: var(--danger); font-size: .78rem; }
         .form-hint { color: var(--gray-500); font-size: .78rem; }
 
@@ -192,7 +195,7 @@
             padding: .75rem 1rem; border-radius: var(--radius); font-size: .85rem; font-weight: 500;
             display: flex; align-items: center; gap: .5rem; margin-bottom: 1.25rem;
         }
-        .alert-success { background: var(--primary-light); color: var(--primary-dark); border: 1px solid #a7d8b8; }
+        .alert-success { background: var(--primary-light); color: var(--primary-dark); border: 1px solid #c5cae9; }
         .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
 
         /* Actions */
@@ -244,7 +247,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <img src="{{ asset('images/logo-gsn.png') }}" alt="GSN">
-            <span>GSN Admin</span>
+            <span>GSN <span>Admin</span></span>
         </div>
         <nav class="sidebar-nav">
             <div class="sidebar-section">Principal</div>
