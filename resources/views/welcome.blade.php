@@ -103,6 +103,35 @@ section{padding:4rem 2rem;}.container{max-width:1200px;margin:0 auto;}
 .unite-color-dot{width:60px;height:60px;border-radius:50%;margin:0 auto 1rem;border:4px solid white;}
 .unite-tag{border-radius:10px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;border-width:1.5px;border-style:solid;display:inline-block;}
 .unite-stat-box{background:rgba(27,79,155,.07);border-radius:8px;padding:.5rem 1rem;font-size:.82rem;font-weight:600;color:var(--bleu-fonce);display:inline-block;margin-top:.8rem;}
+/* A PROPOS */
+.apropos-section{max-width:1100px;margin:0 auto;padding:3rem 2rem;}
+.apropos-section .section-title{text-align:center;}
+.apropos-section .section-bar{margin:0 auto .5rem;}
+.apropos-subtitle{text-align:center;color:var(--gris);font-size:.92rem;max-width:600px;margin:0 auto 2.5rem;line-height:1.7;}
+.valeurs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;}
+.valeur-card{background:#fff;border-radius:16px;padding:2rem 1.5rem;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #eef1f6;transition:transform .2s,box-shadow .2s;}
+.valeur-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
+.valeur-icon{width:60px;height:60px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem;}
+.valeur-card h4{font-family:'Cinzel',serif;font-size:1rem;color:var(--bleu-fonce);margin-bottom:.5rem;}
+.valeur-card p{font-size:.85rem;color:var(--gris);line-height:1.6;}
+.objectifs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.objectif-item{display:flex;align-items:center;gap:.8rem;background:#fff;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 1px 6px rgba(0,0,0,.04);border:1px solid #eef1f6;transition:transform .15s;}
+.objectif-item:hover{transform:translateX(4px);}
+.objectif-item i{color:var(--bleu);font-size:1.1rem;flex-shrink:0;}
+.objectif-item span{font-size:.9rem;font-weight:500;color:var(--bleu-fonce);}
+.mission-box{background:#fff;border-radius:16px;padding:2rem 2.5rem;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #eef1f6;display:flex;align-items:flex-start;gap:1.5rem;position:relative;overflow:hidden;}
+.mission-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--jaune),var(--vert),var(--bleu),var(--rouge));}
+.mission-icon{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#e8f0fe,#d0e0fc);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--bleu);flex-shrink:0;}
+.mission-box p{font-size:.93rem;line-height:1.8;color:#444;}
+.unites-resume{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2rem;}
+.unite-resume-card{background:#fff;border-radius:16px;padding:1.5rem 1rem;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid #eef1f6;border-top:3px solid transparent;transition:transform .2s;}
+.unite-resume-card:hover{transform:translateY(-3px);}
+.unite-resume-card .ur-icon{width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.15rem;color:#fff;font-weight:800;margin-bottom:.8rem;}
+.unite-resume-card h4{font-size:.95rem;font-weight:700;color:var(--bleu-fonce);margin-bottom:.25rem;}
+.unite-resume-card .ur-age{font-size:.8rem;font-weight:600;margin-bottom:.6rem;}
+.unite-resume-card p{font-size:.8rem;color:var(--gris);line-height:1.5;}
+@media(max-width:900px){.valeurs-grid{grid-template-columns:1fr 1fr;}.unites-resume{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.valeurs-grid{grid-template-columns:1fr;}.objectifs-grid{grid-template-columns:1fr;}.unites-resume{grid-template-columns:1fr 1fr;}.mission-box{flex-direction:column;padding:1.5rem;}}
 /* PUBLICATIONS */
 .pub-toolbar{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem;justify-content:space-between;}
 .pub-toolbar-left{display:flex;gap:.5rem;flex-wrap:wrap;}
@@ -245,6 +274,7 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
   </div>
   <ul class="nav-links">
     <li><a data-nav="accueil">Accueil</a></li>
+    <li><a data-nav="apropos">À propos</a></li>
     <li><a data-nav="unites">Unités</a></li>
     <li><a data-nav="publications">Publications</a></li>
     <li><a data-nav="galerie">Galerie</a></li>
@@ -255,6 +285,7 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
 </nav>
 <div class="mobile-menu" id="mobileMenu">
   <a data-nav="accueil"><i class="fa-solid fa-house"></i> Accueil</a>
+  <a data-nav="apropos"><i class="fa-solid fa-circle-info"></i> À propos</a>
   <a data-nav="unites"><i class="fa-solid fa-tent"></i> Unités</a>
   <a data-nav="publications"><i class="fa-solid fa-clipboard-list"></i> Publications</a>
   <a data-nav="galerie"><i class="fa-solid fa-images"></i> Galerie</a>
@@ -313,6 +344,7 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
         </div>
       </div>
       <div class="footer-col"><h4>Navigation</h4><ul>
+        <li><a data-nav="apropos">À propos</a></li>
         <li><a data-nav="unites">Nos Unités</a></li>
         <li><a data-nav="publications">Publications</a></li>
         <li><a data-nav="galerie">Galerie</a></li>
@@ -531,6 +563,111 @@ footer{background:var(--bleu-fonce);color:rgba(255,255,255,.75);padding:3.5rem 2
     <div style="font-family:Cinzel,serif;font-size:1.8rem;font-weight:700;color:#fff;margin-bottom:1rem">Prêt à rejoindre l'aventure ?</div>
     <p style="color:rgba(255,255,255,.75);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto">Choisissez votre unité et inscrivez-vous dès aujourd'hui. Toujours prêts !</p>
     <button class="btn-primary" data-nav="inscription"><i class="fa-solid fa-fleur-de-lis"></i> S'inscrire maintenant</button>
+  </div>
+</div>
+
+<!-- ===== PAGE À PROPOS ===== -->
+<div class="page" id="page-apropos" style="padding-top:68px;min-height:100vh;">
+  <div class="page-hero">
+    <div class="section-title" style="color:#fff">À <span>Propos</span></div>
+    <div class="section-bar"></div>
+    <p>Découvrez qui nous sommes, nos valeurs, notre mission et nos objectifs au sein du Groupe Scout Saint Nicolas.</p>
+  </div>
+
+  <!-- Nos Valeurs -->
+  <div class="apropos-section">
+    <div class="section-title">Nos <span>Valeurs</span></div>
+    <div class="section-bar"></div>
+    <p class="apropos-subtitle">Les valeurs fondamentales qui guident chaque scout dans son parcours au sein de notre groupe.</p>
+    <div class="valeurs-grid">
+      <div class="valeur-card">
+        <div class="valeur-icon" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);color:#c62828;"><i class="fa-solid fa-heart"></i></div>
+        <h4>Fraternité</h4>
+        <p>Vivre ensemble dans le respect et l'amitié, créer des liens forts entre tous les membres du groupe.</p>
+      </div>
+      <div class="valeur-card">
+        <div class="valeur-icon" style="background:linear-gradient(135deg,#fff8e1,#ffecb3);color:#f57f17;"><i class="fa-solid fa-star"></i></div>
+        <h4>Service</h4>
+        <p>Être utile aux autres et à la communauté, agir concrètement pour le bien commun.</p>
+      </div>
+      <div class="valeur-card">
+        <div class="valeur-icon" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);color:#2e7d32;"><i class="fa-solid fa-compass"></i></div>
+        <h4>Aventure</h4>
+        <p>Découvrir, explorer et se dépasser à travers des expériences uniques en pleine nature.</p>
+      </div>
+      <div class="valeur-card">
+        <div class="valeur-icon" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);color:#1565c0;"><i class="fa-solid fa-people-group"></i></div>
+        <h4>Solidarité</h4>
+        <p>S'entraider et grandir ensemble, soutenir chaque membre dans son développement personnel.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nos Objectifs -->
+  <div class="apropos-section" style="background:var(--gris-clair);margin:0 auto;max-width:100%;padding:3rem 2rem;">
+    <div style="max-width:1100px;margin:0 auto;">
+      <div class="section-title">Nos <span>Objectifs</span></div>
+      <div class="section-bar"></div>
+      <p class="apropos-subtitle">Ce que nous cherchons à accomplir à travers notre mouvement scout.</p>
+      <div class="objectifs-grid">
+        <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Former des jeunes responsables et engagés</span></div>
+        <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Développer le sens du service et de la solidarité</span></div>
+        <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Favoriser l'épanouissement personnel par l'aventure</span></div>
+        <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Transmettre les valeurs scoutes et chrétiennes</span></div>
+        <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Créer des liens forts entre les membres</span></div>
+        <div class="objectif-item"><i class="fa-solid fa-circle-check"></i><span>Préparer les jeunes à être des citoyens actifs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nos Unités (résumé) -->
+  <div class="apropos-section">
+    <div class="section-title">Nos <span>Unités</span></div>
+    <div class="section-bar"></div>
+    <p class="apropos-subtitle">Cinq unités adaptées à chaque tranche d'âge pour accompagner les jeunes tout au long de leur parcours.</p>
+    <div class="unites-resume">
+      <div class="unite-resume-card" style="border-top-color:var(--jaune);">
+        <div class="ur-icon" style="background:var(--jaune);">M</div>
+        <h4>Meute</h4>
+        <div class="ur-age" style="color:var(--jaune);">6-11 ans</div>
+        <p>Les louvetaux découvrent le scoutisme à travers le jeu et la vie en meute.</p>
+      </div>
+      <div class="unite-resume-card" style="border-top-color:var(--vert);">
+        <div class="ur-icon" style="background:var(--vert);">T</div>
+        <h4>Troupe</h4>
+        <div class="ur-age" style="color:var(--vert);">12-17 ans</div>
+        <p>Les scouts et guides développent leurs compétences et leur autonomie.</p>
+      </div>
+      <div class="unite-resume-card" style="border-top-color:var(--bleu);">
+        <div class="ur-icon" style="background:var(--bleu);">G</div>
+        <h4>Grappe</h4>
+        <div class="ur-age" style="color:var(--bleu);">17-20 ans</div>
+        <p>Les pionniers et caravelles s'engagent dans des projets de service.</p>
+      </div>
+      <div class="unite-resume-card" style="border-top-color:var(--rouge);">
+        <div class="ur-icon" style="background:var(--rouge);">R</div>
+        <h4>Route</h4>
+        <div class="ur-age" style="color:var(--rouge);">20-23 ans</div>
+        <p>Les routiers s'engagent au service de la communauté.</p>
+      </div>
+      <div class="unite-resume-card" style="border-top-color:#888;">
+        <div class="ur-icon" style="background:#666;">A</div>
+        <h4>Amical</h4>
+        <div class="ur-age" style="color:#888;">23+ ans</div>
+        <p>Les adultes anciens scouts qui restent engagés et accompagnent les jeunes.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notre Mission -->
+  <div class="apropos-section" style="padding-bottom:4rem;">
+    <div class="section-title">Notre <span>Mission</span></div>
+    <div class="section-bar"></div>
+    <p class="apropos-subtitle">L'essence de notre engagement auprès de la jeunesse burundaise.</p>
+    <div class="mission-box">
+      <div class="mission-icon"><i class="fa-solid fa-bullseye"></i></div>
+      <p>Le Groupe Scout Saint Nicolas a pour mission de contribuer à l'éducation des jeunes à travers un système de valeurs basé sur la Promesse et la Loi scoutes, pour les aider à jouer un rôle constructif dans la société. Nous accompagnons chaque jeune dans son développement personnel, spirituel et social, en leur offrant un cadre propice à l'aventure, à l'apprentissage et au service.</p>
+    </div>
   </div>
 </div>
 
