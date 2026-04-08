@@ -15,7 +15,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0c1445 0%, #1a2670 40%, #2a3284 70%, #1a2670 100%);
+            background:
+                radial-gradient(circle at 18% 20%, rgba(255,224,32,.12), transparent 18%),
+                radial-gradient(circle at 82% 22%, rgba(32,64,128,.20), transparent 20%),
+                linear-gradient(135deg, #10154c 0%, #1a2070 42%, #202080 72%, #204080 100%);
             padding: 1rem;
             position: relative;
             overflow: hidden;
@@ -25,8 +28,8 @@
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: radial-gradient(circle at 30% 40%, rgba(197,160,40,.08) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 60%, rgba(197,160,40,.05) 0%, transparent 40%);
+            background: radial-gradient(circle at 30% 40%, rgba(224,192,32,.10) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(255,224,32,.06) 0%, transparent 40%);
             pointer-events: none;
         }
         .login-wrapper {
@@ -42,7 +45,7 @@
         }
         .login-left {
             flex: 1;
-            background: linear-gradient(180deg, rgba(26,38,112,.6) 0%, rgba(12,20,69,.8) 100%);
+            background: linear-gradient(180deg, rgba(32,32,128,.60) 0%, rgba(16,21,76,.84) 100%);
             backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
@@ -59,7 +62,7 @@
             position: absolute;
             bottom: 0; left: 0; right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #C5A028, #D4B030, #C5A028);
+            background: linear-gradient(90deg, #e0c020, #ffe020, #e0c020);
         }
         .login-left img {
             width: 120px; height: 120px;
@@ -70,25 +73,25 @@
             font-size: 1.5rem; font-weight: 700; margin-bottom: .5rem;
             text-shadow: 0 2px 8px rgba(0,0,0,.3);
         }
-        .login-left h1 span { color: #D4B030; }
+        .login-left h1 span { color: #f4e58d; }
         .login-left p { font-size: .88rem; color: rgba(255,255,255,.65); max-width: 260px; line-height: 1.6; }
         .login-left .badge-gold {
             display: inline-flex; align-items: center; gap: .4rem;
             margin-top: 1.5rem; padding: .4rem 1rem;
-            background: rgba(197,160,40,.15); border: 1px solid rgba(197,160,40,.3);
+            background: rgba(224,192,32,.15); border: 1px solid rgba(224,192,32,.35);
             border-radius: 20px; font-size: .75rem; font-weight: 600;
-            color: #D4B030; letter-spacing: .03em;
+            color: #f4e58d; letter-spacing: .03em;
         }
         .login-right {
             flex: 1;
-            background: #fff;
+            background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             padding: 3rem 2.5rem;
         }
         .login-right h2 {
-            font-size: 1.4rem; font-weight: 700; color: #1a2670;
+            font-size: 1.4rem; font-weight: 700; color: #202080;
             margin-bottom: .35rem;
         }
         .login-right .subtitle { font-size: .875rem; color: #6b7280; margin-bottom: 2rem; }
@@ -99,7 +102,7 @@
             border: 1.5px solid #d1d5db; border-radius: 10px; padding: 0 .85rem;
             transition: border-color .2s, box-shadow .2s; background: #fff;
         }
-        .input-wrap:focus-within { border-color: #1a2670; box-shadow: 0 0 0 3px rgba(26,38,112,.1); }
+        .input-wrap:focus-within { border-color: #202080; box-shadow: 0 0 0 3px rgba(32,32,128,.1); }
         .input-wrap i { color: #9ca3af; font-size: .9rem; }
         .input-wrap input {
             flex: 1; border: none; outline: none; padding: .7rem 0;
@@ -109,22 +112,22 @@
         .input-wrap .toggle-pw:hover { color: #6b7280; }
         .form-options { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
         .remember-me { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: #4b5563; cursor: pointer; }
-        .remember-me input { accent-color: #1a2670; width: 16px; height: 16px; }
+        .remember-me input { accent-color: #202080; width: 16px; height: 16px; }
         .btn-login {
             width: 100%; padding: .8rem; border: none; border-radius: 10px;
-            background: linear-gradient(135deg, #1a2670, #2a3284);
+            background: linear-gradient(135deg, #202080, #204080);
             color: #fff; font-size: .95rem; font-weight: 600;
             font-family: inherit; cursor: pointer;
             transition: all .2s;
             display: flex; align-items: center; justify-content: center; gap: .5rem;
-            box-shadow: 0 4px 14px rgba(26,38,112,.3);
+            box-shadow: 0 6px 18px rgba(32,32,128,.28);
         }
         .btn-login:hover {
-            background: linear-gradient(135deg, #0c1445, #1a2670);
-            box-shadow: 0 6px 20px rgba(26,38,112,.4);
+            background: linear-gradient(135deg, #10154c, #202080);
+            box-shadow: 0 8px 22px rgba(32,32,128,.34);
             transform: translateY(-1px);
         }
-        .btn-login i { color: #D4B030; }
+        .btn-login i { color: #ffe020; }
         .separator {
             display: flex; align-items: center; gap: .75rem;
             margin-bottom: 1.25rem; color: #d1d5db; font-size: .78rem;
@@ -142,9 +145,9 @@
             font-size: .8rem; color: #6b7280; text-decoration: none;
             transition: color .15s;
         }
-        .back-link:hover { color: #1a2670; }
+        .back-link:hover { color: #202080; }
         .gold-line {
-            width: 40px; height: 3px; background: #C5A028; border-radius: 2px;
+            width: 40px; height: 3px; background: linear-gradient(90deg, #e0c020, #ffe020); border-radius: 2px;
             margin-bottom: 1.5rem;
         }
         @media (max-width: 640px) {
