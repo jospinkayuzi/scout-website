@@ -59,6 +59,8 @@ Route::prefix('admin')->middleware(['auth', 'permission:voir_tableau_bord'])->na
     });
 
     Route::middleware('permission:gerer_parametres')->group(function () {
+        Route::get('site-settings/homepage-content', [SiteSettingController::class, 'editHomepage'])->name('site-settings.homepage.edit');
+        Route::put('site-settings/homepage-content', [SiteSettingController::class, 'updateHomepage'])->name('site-settings.homepage.update');
         Route::resource('scout-units', ScoutUnitController::class)->except(['show']);
         Route::resource('program-events', ProgramEventController::class)->except(['show']);
         Route::resource('site-settings', SiteSettingController::class)->except(['show']);

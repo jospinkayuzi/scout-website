@@ -17,12 +17,22 @@ class HomeController extends Controller
 {
     public function index()
     {
+        $featuredUnits = $this->loadUnits();
+        $shared = $this->sharedPageData();
+
         return view('site.home', [
-            ...$this->sharedPageData(),
-            'featuredUnits' => $this->loadUnits(),
+            ...$shared,
+            'featuredUnits' => $featuredUnits,
             'latestPublications' => $this->loadPublications(3),
             'featuredGalleryItems' => $this->loadGalleryItems(4, true),
             'upcomingEvents' => $this->loadUpcomingEvents(4),
+            'aboutValues' => $this->aboutValues(),
+            'aboutObjectives' => collect($shared['objectives']['items'] ?? [])
+                ->map(fn ($objective) => is_array($objective) ? ($objective['title'] ?? null) : $objective)
+                ->filter()
+                ->values()
+                ->all(),
+            'aboutUnits' => $this->aboutUnits($featuredUnits),
         ]);
     }
 
@@ -346,6 +356,111 @@ class HomeController extends Controller
             'pending' => Member::where('status', 'pending')->count(),
             'inactive' => Member::where('status', 'inactive')->count(),
             'total' => Member::count(),
+        ];
+    }
+
+    private function aboutValues(): array
+    {
+        return [
+            [
+                'title' => 'Fraternite',
+                'description' => "Nous cultivons l'esprit d'equipe, l'amitie sincere et le respect de chacun dans toutes nos activites.",
+                'icon' => 'fa-solid fa-heart',
+            ],
+            [
+                'title' => 'Service',
+                'description' => 'Nous apprenons a servir avec humilite, a agir utilement et a prendre soin de notre communaute.',
+                'icon' => 'fa-solid fa-hand-holding-heart',
+            ],
+            [
+                'title' => 'Aventure',
+                'description' => "Nous faisons grandir l'audace, la debrouillardise et la joie de decouvrir le monde ensemble.",
+                'icon' => 'fa-solid fa-compass',
+            ],
+            [
+                'title' => 'Solidarite',
+                'description' => 'Nous avancons les uns avec les autres, en portant une attention concrete aux plus fragiles.',
+                'icon' => 'fa-solid fa-people-group',
+            ],
+        ];
+    }
+
+    private function aboutUnits(Collection $units): array
+    {
+        $unitsBySlug = $units->keyBy('slug');
+        $troupes = $units->filter(fn ($unit) => in_array($unit->slug, ['troupe-f', 'troupe-m'], true));
+        $troupeActiveMembers = $troupes->sum('active_members_count');
+        $troupeNames = $troupes->pluck('name')->filter()->implode(' et ');
+        $troupeLeaders = $troupes->pluck('leader_name')->filter()->implode(' / ');
+
+        $meute = $unitsBySlug->get('meute');
+        $grappe = $unitsBySlug->get('grappe');
+        $route = $unitsBySlug->get('route');
+        $amical = $unitsBySlug->get('amical');
+
+        return [
+            [
+                'name' => 'Meute',
+                'age_range' => $meute?->age_range ?? '6 - 11 ans',
+                'description' => $meute?->long_description ?? "La Meute initie les plus jeunes a la vie scoute par le jeu, l'imaginaire et les premiers services.",
+                'icon' => $meute?->icon ?? 'fa-solid fa-paw',
+                'banner' => 'linear-gradient(135deg, #F5C518 0%, #F5C518 100%)',
+                'banner_text' => '#1a2e6b',
+                'meta' => array_values(array_filter([
+                    $meute?->schedule,
+                    $meute?->leader_name,
+                    ($meute?->active_members_count !== null) ? (($meute->active_members_count ?? 0) . ' membres actifs') : null,
+                ])),
+            ],
+            [
+                'name' => 'Troupe',
+                'age_range' => $troupes->pluck('age_range')->filter()->first() ?? '12 - 15 ans',
+                'description' => "La Troupe fait grandir l'autonomie, la technique scoute et l'esprit de patrouille a travers les defis, les camps et le leadership des jeunes.",
+                'icon' => 'fa-solid fa-campground',
+                'banner' => 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                'meta' => array_values(array_filter([
+                    $troupes->pluck('schedule')->filter()->first(),
+                    $troupeNames ? 'Branches : ' . $troupeNames : null,
+                    $troupeLeaders ? 'Responsables : ' . $troupeLeaders : null,
+                    $troupeActiveMembers > 0 ? $troupeActiveMembers . ' membres actifs' : null,
+                ])),
+            ],
+            [
+                'name' => 'Grappe',
+                'age_range' => $grappe?->age_range ?? '16 - 18 ans',
+                'description' => $grappe?->long_description ?? "La Grappe encourage les projets concrets, la responsabilite collective et l'engagement utile pour le groupe et la societe.",
+                'icon' => $grappe?->icon ?? 'fa-solid fa-people-group',
+                'banner' => 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                'meta' => array_values(array_filter([
+                    $grappe?->schedule,
+                    $grappe?->leader_name,
+                    ($grappe?->active_members_count !== null) ? (($grappe->active_members_count ?? 0) . ' membres actifs') : null,
+                ])),
+            ],
+            [
+                'name' => 'Route',
+                'age_range' => $route?->age_range ?? '19 - 23 ans',
+                'description' => $route?->long_description ?? "La Route accompagne les jeunes adultes dans un engagement plus profond, une vie de service et un projet de vie responsable.",
+                'icon' => $route?->icon ?? 'fa-solid fa-person-hiking',
+                'banner' => 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+                'meta' => array_values(array_filter([
+                    $route?->schedule,
+                    $route?->leader_name,
+                    ($route?->active_members_count !== null) ? (($route->active_members_count ?? 0) . ' membres actifs') : null,
+                ])),
+            ],
+            [
+                'name' => 'Amical',
+                'age_range' => $amical?->age_range ?? '23 ans et +',
+                'description' => $amical?->long_description ?? "L'Amical rassemble les adultes et anciens qui soutiennent les unites, transmettent l'experience et fortifient la vie du groupe.",
+                'icon' => $amical?->icon ?? 'fa-solid fa-people-roof',
+                'banner' => 'linear-gradient(135deg, #f5c518 0%, #1a2e6b 100%)',
+                'meta' => array_values(array_filter([
+                    $amical?->schedule,
+                    $amical?->leader_name,
+                    ($amical?->active_members_count !== null) ? (($amical->active_members_count ?? 0) . ' membres actifs') : null,
+                ])),
+            ],
         ];
     }
 

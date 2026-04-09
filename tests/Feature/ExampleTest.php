@@ -16,4 +16,11 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_the_about_page_redirects_to_the_homepage_anchor(): void
+    {
+        $response = $this->get('/a-propos');
+
+        $response->assertRedirect('/#a-propos');
+    }
 }

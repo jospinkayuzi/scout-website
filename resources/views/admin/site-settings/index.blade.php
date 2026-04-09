@@ -10,9 +10,16 @@
             <h2><i class="fa-solid fa-sliders"></i> Parametres de contenu</h2>
             <p style="color:var(--gray-500);font-size:.84rem;margin-top:.25rem;">Hero, mission, valeurs, objectifs, contact et autres blocs dynamiques du site.</p>
         </div>
-        <a href="{{ route('admin.site-settings.create') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nouveau parametre</a>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <a href="{{ route('admin.site-settings.homepage.edit') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-house"></i> Modifier l'accueil</a>
+            <a href="{{ route('admin.site-settings.create') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Nouveau parametre</a>
+        </div>
     </div>
     <div class="card-body">
+        <div style="margin-bottom:1rem;padding:1rem 1.1rem;border-radius:16px;background:rgba(19,79,143,.06);border:1px solid rgba(19,79,143,.10);display:grid;gap:.45rem;">
+            <strong style="color:var(--gray-900);">Edition rapide pour le superadmin</strong>
+            <p style="color:var(--gray-600);font-size:.9rem;">Les textes de l'accueil comme le hero, la mission, les valeurs, les objectifs et le contact peuvent maintenant etre modifies depuis l'ecran "Modifier l'accueil". Les unites restent gerables depuis la section unites.</p>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead>
