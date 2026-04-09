@@ -13,13 +13,15 @@
         <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
             <form method="GET" action="{{ route('admin.gallery-items.index') }}" style="display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;">
                 <select name="scout_unit_id" class="form-select" style="min-width:220px;">
-                    <option value="">Toutes les galeries</option>
+                    @if($canManageGlobalGallery ?? false)
+                        <option value="">Toutes les galeries</option>
+                    @endif
                     @foreach($units as $unit)
                         <option value="{{ $unit->id }}" @selected((string) $selectedUnitId === (string) $unit->id)>{{ $unit->name }}</option>
                     @endforeach
                 </select>
                 <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-filter"></i> Filtrer</button>
-                @if($selectedUnitId)
+                @if($selectedUnitId && ($canManageGlobalGallery ?? false))
                     <a href="{{ route('admin.gallery-items.index') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Reinitialiser</a>
                 @endif
             </form>
@@ -27,6 +29,11 @@
         </div>
     </div>
     <div class="card-body">
+        @if(!($canManageGlobalGallery ?? false))
+            <div style="margin-bottom:1rem;padding:1rem 1.1rem;border-radius:16px;background:rgba(19,79,143,.06);border:1px solid rgba(19,79,143,.10);color:var(--gray-700);">
+                La publication des photos est reservee au chef de groupe ou au chef de l'unite concernee. Vous voyez uniquement la galerie de votre unite.
+            </div>
+        @endif
         <div class="table-wrap">
             <table>
                 <thead>

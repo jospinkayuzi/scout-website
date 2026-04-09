@@ -15,12 +15,20 @@
     <div class="form-group">
         <label class="form-label">Galerie / Unite</label>
         <select name="scout_unit_id" class="form-select">
-            <option value="">Toutes les unites</option>
+            @if($canManageGlobalGallery ?? false)
+                <option value="">Toutes les unites</option>
+            @endif
             @foreach($units as $unit)
                 <option value="{{ $unit->id }}" @selected((string) old('scout_unit_id', $galleryItem->scout_unit_id ?? $selectedUnitId ?? '') === (string) $unit->id)>{{ $unit->name }}</option>
             @endforeach
         </select>
-        <span class="form-hint">Le media sera publie dans la galerie de l unite choisie.</span>
+        <span class="form-hint">
+            @if($canManageGlobalGallery ?? false)
+                Le media sera publie dans la galerie de l unite choisie.
+            @else
+                Vous pouvez publier uniquement dans la galerie de votre unite.
+            @endif
+        </span>
         @error('scout_unit_id') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group">

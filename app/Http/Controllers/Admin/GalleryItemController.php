@@ -4,25 +4,40 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\GalleryItem;
+use App\Models\Member;
 use App\Models\ScoutUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class GalleryItemController extends Controller
 {
-    public function index()
+    private const GROUP_CHIEF_FUNCTIONS = [
+        'Cheffe de Groupe',
+        'Chef de Groupe',
+    ];
+
+    private const UNIT_CHIEF_FUNCTION_MAP = [
+        'Akela (Chef d\'unité Meute)' => 'meute',
+        'Troupe F' => 'troupe-f',
+        'Troupe M' => 'troupe-m',
+        'Grappe' => 'grappe',
+        'Route' => 'route',
+        'Amical' => 'amical',
+    ];
+
+    public function index(Request $request)
     {
-        $units = ScoutUnit::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        $access = $this->galleryAccess($request);
+        $units = $this->availableUnits($access);
 
         $selectedUnitId = request()->integer('scout_unit_id') ?: null;
+        $this->ensureSelectedUnitIsAllowed($selectedUnitId, $access);
 
         $galleryItems = GalleryItem::query()
             ->with('scoutUnit')
+            ->when(!$access['can_manage_all_units'], fn ($query) => $query->whereIn('scout_unit_id', $access['allowed_unit_ids']))
             ->when($selectedUnitId, fn ($query) => $query->where('scout_unit_id', $selectedUnitId))
             ->orderByDesc('is_featured')
             ->orderBy('sort_order')
@@ -31,20 +46,26 @@ class GalleryItemController extends Controller
 
         $galleryItems->appends(request()->query());
 
-        return view('admin.gallery-items.index', compact('galleryItems', 'units', 'selectedUnitId'));
+        $canManageGlobalGallery = $access['can_manage_global_gallery'];
+
+        return view('admin.gallery-items.index', compact('galleryItems', 'units', 'selectedUnitId', 'canManageGlobalGallery'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $units = ScoutUnit::query()->where('is_active', true)->orderBy('sort_order')->get();
-        $selectedUnitId = request()->integer('scout_unit_id') ?: null;
+        $access = $this->galleryAccess($request);
+        $units = $this->availableUnits($access);
+        $selectedUnitId = request()->integer('scout_unit_id') ?: ($access['allowed_unit_ids'][0] ?? null);
+        $this->ensureSelectedUnitIsAllowed($selectedUnitId, $access);
+        $canManageGlobalGallery = $access['can_manage_global_gallery'];
 
-        return view('admin.gallery-items.create', compact('units', 'selectedUnitId'));
+        return view('admin.gallery-items.create', compact('units', 'selectedUnitId', 'canManageGlobalGallery'));
     }
 
     public function store(Request $request)
     {
-        $galleryItem = GalleryItem::create($this->validatedData($request));
+        $access = $this->galleryAccess($request);
+        $galleryItem = GalleryItem::create($this->validatedData($request, null, $access));
 
         return redirect()->route('admin.gallery-items.index', array_filter([
             'scout_unit_id' => $galleryItem->scout_unit_id,
@@ -52,16 +73,22 @@ class GalleryItemController extends Controller
             ->with('success', 'Media cree avec succes.');
     }
 
-    public function edit(GalleryItem $galleryItem)
+    public function edit(Request $request, GalleryItem $galleryItem)
     {
-        $units = ScoutUnit::query()->where('is_active', true)->orderBy('sort_order')->get();
+        $access = $this->galleryAccess($request);
+        $this->authorizeGalleryItem($galleryItem, $access);
+        $units = $this->availableUnits($access);
+        $canManageGlobalGallery = $access['can_manage_global_gallery'];
+        $selectedUnitId = $galleryItem->scout_unit_id;
 
-        return view('admin.gallery-items.edit', compact('galleryItem', 'units'));
+        return view('admin.gallery-items.edit', compact('galleryItem', 'units', 'canManageGlobalGallery', 'selectedUnitId'));
     }
 
     public function update(Request $request, GalleryItem $galleryItem)
     {
-        $galleryItem->update($this->validatedData($request, $galleryItem));
+        $access = $this->galleryAccess($request);
+        $this->authorizeGalleryItem($galleryItem, $access);
+        $galleryItem->update($this->validatedData($request, $galleryItem, $access));
 
         return redirect()->route('admin.gallery-items.index', array_filter([
             'scout_unit_id' => $galleryItem->scout_unit_id,
@@ -69,8 +96,10 @@ class GalleryItemController extends Controller
             ->with('success', 'Media mis a jour avec succes.');
     }
 
-    public function destroy(GalleryItem $galleryItem)
+    public function destroy(Request $request, GalleryItem $galleryItem)
     {
+        $access = $this->galleryAccess($request);
+        $this->authorizeGalleryItem($galleryItem, $access);
         $this->deleteManagedFile($galleryItem->media_path);
         $galleryItem->delete();
 
@@ -78,10 +107,19 @@ class GalleryItemController extends Controller
             ->with('success', 'Media supprime avec succes.');
     }
 
-    private function validatedData(Request $request, ?GalleryItem $galleryItem = null): array
+    private function validatedData(Request $request, ?GalleryItem $galleryItem = null, array $access = []): array
     {
+        $unitRules = ['nullable', 'exists:scout_units,id'];
+
+        if (!$access['can_manage_global_gallery']) {
+            array_unshift($unitRules, 'required');
+            $unitRules[] = Rule::in($access['allowed_unit_ids']);
+        } elseif (!$access['can_manage_all_units']) {
+            $unitRules[] = Rule::in($access['allowed_unit_ids']);
+        }
+
         $validated = $request->validate([
-            'scout_unit_id' => ['nullable', 'exists:scout_units,id'],
+            'scout_unit_id' => $unitRules,
             'title' => ['required', 'string', 'max:255'],
             'event_name' => ['nullable', 'string', 'max:255'],
             'media_type' => ['required', 'in:image,video'],
@@ -104,6 +142,90 @@ class GalleryItemController extends Controller
         unset($validated['media_file']);
 
         return $validated;
+    }
+
+    private function galleryAccess(Request $request): array
+    {
+        $user = $request->user();
+
+        if ($user->isSuperAdmin()) {
+            return [
+                'can_manage_all_units' => true,
+                'can_manage_global_gallery' => true,
+                'allowed_unit_ids' => ScoutUnit::query()->where('is_active', true)->pluck('id')->all(),
+            ];
+        }
+
+        $member = Member::query()
+            ->where('status', 'active')
+            ->whereNotNull('email')
+            ->whereRaw('LOWER(email) = ?', [strtolower((string) $user->email)])
+            ->first();
+
+        if (!$member) {
+            abort(403, 'Seuls le chef de groupe et les chefs d unite autorises peuvent publier des photos.');
+        }
+
+        if (in_array($member->member_function, self::GROUP_CHIEF_FUNCTIONS, true)) {
+            return [
+                'can_manage_all_units' => true,
+                'can_manage_global_gallery' => true,
+                'allowed_unit_ids' => ScoutUnit::query()->where('is_active', true)->pluck('id')->all(),
+            ];
+        }
+
+        $allowedSlug = self::UNIT_CHIEF_FUNCTION_MAP[$member->member_function] ?? null;
+
+        if (!$allowedSlug) {
+            abort(403, 'Seuls le chef de groupe et les chefs d unite autorises peuvent publier des photos.');
+        }
+
+        $allowedUnitId = ScoutUnit::query()
+            ->where('is_active', true)
+            ->where('slug', $allowedSlug)
+            ->value('id');
+
+        if (!$allowedUnitId) {
+            abort(403, 'Aucune unite autorisee n est rattachee a votre fonction.');
+        }
+
+        return [
+            'can_manage_all_units' => false,
+            'can_manage_global_gallery' => false,
+            'allowed_unit_ids' => [$allowedUnitId],
+        ];
+    }
+
+    private function availableUnits(array $access)
+    {
+        return ScoutUnit::query()
+            ->where('is_active', true)
+            ->when(!$access['can_manage_all_units'], fn ($query) => $query->whereIn('id', $access['allowed_unit_ids']))
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function ensureSelectedUnitIsAllowed(?int $selectedUnitId, array $access): void
+    {
+        if (!$selectedUnitId) {
+            return;
+        }
+
+        if (!in_array($selectedUnitId, $access['allowed_unit_ids'], true)) {
+            abort(403, 'Vous ne pouvez gerer que la galerie de votre unite.');
+        }
+    }
+
+    private function authorizeGalleryItem(GalleryItem $galleryItem, array $access): void
+    {
+        if ($access['can_manage_all_units']) {
+            return;
+        }
+
+        if (!$galleryItem->scout_unit_id || !in_array($galleryItem->scout_unit_id, $access['allowed_unit_ids'], true)) {
+            abort(403, 'Vous ne pouvez gerer que les photos de votre unite.');
+        }
     }
 
     private function ensureUploadedFileMatchesType(Request $request): void
