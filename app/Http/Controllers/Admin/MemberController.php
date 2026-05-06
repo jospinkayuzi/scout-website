@@ -136,12 +136,15 @@ class MemberController extends Controller
             'scout_unit_id' => ['required', 'exists:scout_units,id'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'totem' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'gender' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:1000'],
             'parent_name' => ['nullable', 'string', 'max:255'],
+            'guardian_relationship' => ['nullable', 'string', 'max:100'],
+            'guardian_phone' => ['nullable', 'string', 'max:50'],
             'medical_notes' => ['nullable', 'string', 'max:2000'],
             'motivation' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', 'in:active,pending,inactive'],
@@ -163,16 +166,26 @@ class MemberController extends Controller
 
     private function enforceUnitRules(ScoutUnit $unit, array $validated): void
     {
+        $messages = [];
+
         if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['parent_name'] ?? null)) {
-            throw ValidationException::withMessages([
-                'parent_name' => 'Le parent ou tuteur est obligatoire pour cette unite.',
-            ]);
+            $messages['parent_name'] = 'Le parent ou tuteur est obligatoire pour cette unite.';
+        }
+
+        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_relationship'] ?? null)) {
+            $messages['guardian_relationship'] = 'Le lien de parente est obligatoire pour cette unite.';
+        }
+
+        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_phone'] ?? null)) {
+            $messages['guardian_phone'] = 'Le telephone du tuteur est obligatoire pour cette unite.';
         }
 
         if (in_array($unit->slug, ['route', 'amical'], true) && blank($validated['phone'] ?? null)) {
-            throw ValidationException::withMessages([
-                'phone' => 'Le telephone est obligatoire pour cette unite.',
-            ]);
+            $messages['phone'] = 'Le telephone est obligatoire pour cette unite.';
+        }
+
+        if ($messages !== []) {
+            throw ValidationException::withMessages($messages);
         }
     }
 }

@@ -28,14 +28,14 @@ Modifier
                     @error('email') <span class="form-error">{{ $message }}</span> @enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Nouveau mot de passe</label>
+                    <label class="form-label">Nouveau Galeriee</label>
                     <input type="password" name="password" class="form-input" placeholder="Laisser vide pour ne pas changer">
                     @error('password') <span class="form-error">{{ $message }}</span> @enderror
-                    <span class="form-hint">Laisser vide pour conserver le mot de passe actuel</span>
+                    <span class="form-hint">Laisser vide pour conserver le Galeriee actuel</span>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Confirmer le mot de passe</label>
-                    <input type="password" name="password_confirmation" class="form-input" placeholder="Retapez le nouveau mot de passe">
+                    <label class="form-label">Confirmer le Galeriee</label>
+                    <input type="password" name="password_confirmation" class="form-input" placeholder="Retapez le nouveau Galeriee">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Rôle *</label>

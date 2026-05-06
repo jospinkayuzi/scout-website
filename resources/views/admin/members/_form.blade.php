@@ -10,6 +10,11 @@
         @error('last_name') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group">
+        <label class="form-label">Totem</label>
+        <input type="text" name="totem" value="{{ old('totem', $member->totem ?? '') }}" class="form-input">
+        @error('totem') <span class="form-error">{{ $message }}</span> @enderror
+    </div>
+    <div class="form-group">
         <label class="form-label">Unite *</label>
         <select name="scout_unit_id" class="form-select" required>
             <option value="">Choisir une unite</option>
@@ -98,6 +103,21 @@
         <label class="form-label">Parent / tuteur</label>
         <input type="text" name="parent_name" value="{{ old('parent_name', $member->parent_name ?? '') }}" class="form-input">
         @error('parent_name') <span class="form-error">{{ $message }}</span> @enderror
+    </div>
+    <div class="form-group">
+        <label class="form-label">Lien de parente</label>
+        <select name="guardian_relationship" class="form-select">
+            <option value="">Choisir</option>
+            @foreach(['Pere', 'Mere', 'Frere / soeur', 'Oncle / tante', 'Grand-parent', 'Tuteur legal', 'Autre'] as $relationship)
+                <option value="{{ $relationship }}" @selected(old('guardian_relationship', $member->guardian_relationship ?? '') === $relationship)>{{ $relationship }}</option>
+            @endforeach
+        </select>
+        @error('guardian_relationship') <span class="form-error">{{ $message }}</span> @enderror
+    </div>
+    <div class="form-group">
+        <label class="form-label">Telephone du tuteur</label>
+        <input type="text" name="guardian_phone" value="{{ old('guardian_phone', $member->guardian_phone ?? '') }}" class="form-input">
+        @error('guardian_phone') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group full">
         <label class="form-label">Informations medicales</label>

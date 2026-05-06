@@ -9,6 +9,7 @@ use App\Models\Publication;
 use App\Models\ScoutUnit;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -88,6 +89,7 @@ class HomeController extends Controller
             'recentMembers' => $this->loadRecentMembers(8),
             'membersByUnit' => $this->loadMembersByUnit(),
             'maitriseMembers' => $this->loadMaitriseMembers(),
+            'teamMembersTable' => $this->teamMembersTable(),
         ]);
     }
 
@@ -102,28 +104,48 @@ class HomeController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'scout_unit_id' => ['required', 'exists:scout_units,id'],
+            'scout_unit_id' => ['nullable', 'exists:scout_units,id'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'totem' => ['nullable', 'string', 'max:255'],
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
-            'gender' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'gender' => ['required', 'string', 'in:Feminin,Masculin'],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:1000'],
             'parent_name' => ['nullable', 'string', 'max:255'],
-            'medical_notes' => ['nullable', 'string', 'max:2000'],
-            'motivation' => ['nullable', 'string', 'max:2000'],
+            'guardian_relationship' => ['nullable', 'string', 'max:100'],
+            'guardian_phone' => ['nullable', 'string', 'max:50'],
+            'motivation' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $unit = ScoutUnit::findOrFail($validated['scout_unit_id']);
+        $unit = $this->resolveRegistrationUnit($validated);
+
+        if (!$unit) {
+            throw ValidationException::withMessages([
+                'scout_unit_id' => 'Selectionnez une unite valide ou completez les informations du scout pour obtenir une suggestion automatique.',
+            ]);
+        }
+
+        $validated['scout_unit_id'] = $unit->id;
 
         $this->enforceUnitRules($unit, $validated);
 
         Member::create([
-            ...$validated,
+            'scout_unit_id' => $validated['scout_unit_id'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'totem' => $validated['totem'] ?? null,
+            'birth_date' => $validated['birth_date'],
+            'gender' => $validated['gender'],
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'parent_name' => $validated['parent_name'] ?? null,
+            'guardian_relationship' => $validated['guardian_relationship'] ?? null,
+            'guardian_phone' => $validated['guardian_phone'] ?? null,
+            'motivation' => $validated['motivation'] ?? null,
             'status' => 'pending',
             'member_function' => 'Membre',
-            'medical_notes' => $validated['medical_notes'] ?? 'Aucune',
+            'medical_notes' => 'Aucune',
             'registered_at' => now()->toDateString(),
         ]);
 
@@ -175,6 +197,8 @@ class HomeController extends Controller
         if (!Schema::hasTable('scout_units')) {
             return collect();
         }
+
+        $this->ensureScoutUnitsAvailable();
 
         $query = ScoutUnit::query()
             ->where('is_active', true)
@@ -359,6 +383,33 @@ class HomeController extends Controller
         ];
     }
 
+    private function teamMembersTable(): array
+    {
+        return [
+            [
+                'nom' => 'Kezimana Fiona',
+                'unite' => 'Route',
+                'role' => 'Chef',
+                'contact' => null,
+                'statut' => 'En attente',
+            ],
+            [
+                'nom' => 'Chris hhh',
+                'unite' => 'Amical',
+                'role' => 'Chef',
+                'contact' => null,
+                'statut' => 'En attente',
+            ],
+            [
+                'nom' => 'Misago',
+                'unite' => 'Amical',
+                'role' => 'Chef',
+                'contact' => '+25779759341',
+                'statut' => 'En attente',
+            ],
+        ];
+    }
+
     private function aboutValues(): array
     {
         return [
@@ -466,16 +517,115 @@ class HomeController extends Controller
 
     private function enforceUnitRules(ScoutUnit $unit, array $validated): void
     {
+        $messages = [];
+
         if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['parent_name'] ?? null)) {
-            throw ValidationException::withMessages([
-                'parent_name' => 'Le parent ou tuteur est obligatoire pour cette unite.',
-            ]);
+            $messages['parent_name'] = 'Le parent ou tuteur est obligatoire pour cette unite.';
+        }
+
+        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_relationship'] ?? null)) {
+            $messages['guardian_relationship'] = 'Le lien de parente est obligatoire pour cette unite.';
+        }
+
+        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_phone'] ?? null)) {
+            $messages['guardian_phone'] = 'Le telephone du tuteur est obligatoire pour cette unite.';
         }
 
         if (in_array($unit->slug, ['route', 'amical'], true) && blank($validated['phone'] ?? null)) {
-            throw ValidationException::withMessages([
-                'phone' => 'Le telephone est obligatoire pour cette unite.',
-            ]);
+            $messages['phone'] = 'Le telephone est obligatoire pour cette unite.';
+        }
+
+        if ($messages !== []) {
+            throw ValidationException::withMessages($messages);
+        }
+    }
+
+    private function resolveRegistrationUnit(array $validated): ?ScoutUnit
+    {
+        $this->ensureScoutUnitsAvailable();
+
+        $age = $this->calculateRegistrationAge($validated['birth_date'] ?? null);
+        $allowedSlugs = $this->allowedRegistrationUnitSlugs($age, $validated['gender'] ?? null);
+
+        if ($allowedSlugs === []) {
+            return null;
+        }
+
+        if (!blank($validated['scout_unit_id'] ?? null)) {
+            $selectedUnit = ScoutUnit::query()
+                ->whereKey($validated['scout_unit_id'])
+                ->where('is_active', true)
+                ->first();
+
+            if ($selectedUnit && in_array($selectedUnit->slug, $allowedSlugs, true)) {
+                return $selectedUnit;
+            }
+
+            return null;
+        }
+
+        return $this->findActiveUnitBySlugs($allowedSlugs);
+    }
+
+    private function allowedRegistrationUnitSlugs(?int $age, ?string $gender): array
+    {
+        return match (true) {
+            $age >= 6 && $age <= 11 => ['meute'],
+            $age >= 12 && $age <= 15 && $gender === 'Feminin' => ['troupe-f', 'troupe'],
+            $age >= 12 && $age <= 15 && $gender === 'Masculin' => ['troupe-m', 'troupe'],
+            $age >= 12 && $age <= 15 => ['troupe-f', 'troupe-m', 'troupe'],
+            $age >= 16 && $age <= 18 => ['grappe'],
+            $age >= 19 && $age <= 23 => ['route'],
+            $age > 23 => ['amical'],
+            default => [],
+        };
+    }
+
+    private function calculateRegistrationAge(?string $birthDate): ?int
+    {
+        if (blank($birthDate)) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($birthDate)->age;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function findActiveUnitBySlugs(array $slugs): ?ScoutUnit
+    {
+        $units = ScoutUnit::query()
+            ->where('is_active', true)
+            ->whereIn('slug', $slugs)
+            ->get()
+            ->keyBy('slug');
+
+        foreach ($slugs as $slug) {
+            if ($units->has($slug)) {
+                return $units->get($slug);
+            }
+        }
+
+        return null;
+    }
+
+    private function ensureScoutUnitsAvailable(): void
+    {
+        if (!Schema::hasTable('scout_units')) {
+            return;
+        }
+
+        if (ScoutUnit::query()->exists()) {
+            return;
+        }
+
+        foreach (config('site_content.units', []) as $unit) {
+            ScoutUnit::updateOrCreate(
+                ['slug' => $unit['slug']],
+                $unit
+            );
         }
     }
 }

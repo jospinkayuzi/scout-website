@@ -2,7 +2,7 @@
 
 @section('title', 'Membres - Groupe Scout Saint Nicolas')
 @section('page_kicker', 'Communautes et inscriptions')
-@section('page_title', 'La vie des <span>membres</span>')
+@section('page_title', 'La vie des membres')
 @section('page_summary', 'Cette page se concentre sur les inscriptions et les statistiques du groupe, au lieu de melanger ces informations avec le reste du site.')
 
 @section('content')
@@ -20,9 +20,10 @@
 <section>
     <div class="section-shell">
         <div class="tab-navigation">
-            <a href="#recent" class="tab-link active">Dernières inscriptions</a>
+            <a href="#recent" class="tab-link active">Dernieres inscriptions</a>
             <a href="#maitrise" class="tab-link">Maitrise</a>
-            <a href="#units" class="tab-link">Par unité</a>
+            <a href="#team-field" class="tab-link">Champ des membres</a>
+            <a href="#units" class="tab-link">Par unite</a>
         </div>
     </div>
 </section>
@@ -37,7 +38,7 @@
             <div class="member-list">
                 @forelse($recentMembers as $member)
                     <div class="member-row">
-                        <div class="member-avatar">{{ strtoupper(substr($member->first_name, 0, 1).substr($member->last_name, 0, 1)) }}</div>
+                        <div class="member-avatar">{{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}</div>
                         <div class="member-info">
                             <div class="member-name">{{ $member->full_name }}</div>
                             <div class="member-details">{{ $member->scoutUnit->name ?? 'Sans unite' }} - {{ $member->age }} ans</div>
@@ -70,7 +71,7 @@
             <div class="member-grid">
                 @forelse($maitriseMembers as $member)
                     <article class="member-card">
-                        <div class="member-avatar">{{ strtoupper(substr($member->first_name, 0, 1).substr($member->last_name, 0, 1)) }}</div>
+                        <div class="member-avatar">{{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}</div>
                         <div class="card-title">{{ $member->full_name }}</div>
                         <p class="card-copy">{{ $member->member_function }}</p>
                         <div class="meta-row">
@@ -85,6 +86,16 @@
                 @endforelse
             </div>
         </article>
+    </div>
+</section>
+
+<section id="team-field">
+    <div class="section-shell callout-grid">
+        <x-members-team-table
+            :members="$teamMembersTable"
+            title="Champ des membres"
+            summary="Un composant de tableau propre et moderne pour une application de gestion d'equipes, avec badges colores, recherche et filtre par unite."
+        />
     </div>
 </section>
 

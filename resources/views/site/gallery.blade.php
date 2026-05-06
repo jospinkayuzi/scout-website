@@ -1,9 +1,31 @@
+@php
+    $galleryMedia = $galleryItems
+        ->map(function ($item) {
+            $mediaPath = \Illuminate\Support\Str::startsWith($item->media_path, ['http://', 'https://'])
+                ? $item->media_path
+                : asset($item->media_path);
+
+            return [
+                'id' => $item->id,
+                'url' => $mediaPath,
+                'type' => $item->media_type,
+                'category' => $item->scoutUnit?->name ?? 'Groupe',
+                'title' => $item->title,
+                'caption' => $item->caption ?: 'Souvenir du Groupe Scout Saint Nicolas.',
+                'event' => $item->event_name,
+                'date' => optional($item->taken_at)->format('d/m/Y') ?: 'Date non precisee',
+                'badgeColor' => $item->scoutUnit?->color ?? '#1e293b',
+            ];
+        })
+        ->values();
+@endphp
+
 @extends('site.layouts.app')
 
 @section('title', 'Galerie - Groupe Scout Saint Nicolas')
 @section('page_kicker', 'Mediatheque du groupe')
-@section('page_title', 'Galerie <span>des unites</span>')
-@section('page_summary', 'Une galerie moderne avec filtres, lightbox plein ecran et publication rapide de nouveaux medias.')
+@section('page_title', 'Galerie des unites')
+@section('page_summary', 'Les medias publies depuis l administration sont affiches ici avec filtres par unite et lightbox plein ecran.')
 
 @push('styles')
 <style>
@@ -77,7 +99,7 @@
         flex-shrink: 0;
     }
 
-    .media-gallery-publish {
+    .media-gallery-action {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -90,17 +112,24 @@
         font: inherit;
         font-size: .92rem;
         font-weight: 700;
-        cursor: pointer;
-        transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+        text-decoration: none;
+        transition: transform .2s ease, background .2s ease, box-shadow .2s ease, opacity .2s ease;
         box-shadow: 0 16px 34px rgba(30, 41, 59, .22);
     }
 
-    .media-gallery-publish:hover {
+    .media-gallery-action:hover {
         background: #0f172a;
         transform: translateY(-1px);
     }
 
-    .media-gallery-publish-icon {
+    .media-gallery-action.is-disabled,
+    .media-gallery-action[aria-disabled='true'] {
+        opacity: .68;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .media-gallery-action-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -129,6 +158,7 @@
         transform: translateY(26px);
         opacity: 0;
         animation: mediaCardIn .55s ease forwards;
+        cursor: pointer;
     }
 
     .media-card::before {
@@ -137,7 +167,7 @@
         inset: 0;
         background: linear-gradient(180deg, rgba(15, 23, 42, .08) 0%, rgba(15, 23, 42, .24) 100%);
         z-index: 1;
-        transition: opacity .25s ease, background .25s ease;
+        transition: background .25s ease;
     }
 
     .media-card:hover::before {
@@ -245,8 +275,7 @@
         text-align: center;
     }
 
-    .media-modal,
-    .publish-modal {
+    .media-modal {
         position: fixed;
         inset: 0;
         display: none;
@@ -254,19 +283,14 @@
         justify-content: center;
         padding: 1.5rem;
         z-index: 1200;
-    }
-
-    .media-modal.is-open,
-    .publish-modal.is-open {
-        display: flex;
-    }
-
-    .media-modal {
         background: rgba(0, 0, 0, .92);
     }
 
+    .media-modal.is-open {
+        display: flex;
+    }
+
     .media-modal-close,
-    .publish-modal-close,
     .media-modal-nav {
         border: none;
         background: rgba(255, 255, 255, .12);
@@ -277,7 +301,6 @@
     }
 
     .media-modal-close:hover,
-    .publish-modal-close:hover,
     .media-modal-nav:hover {
         background: rgba(255, 255, 255, .2);
         transform: translateY(-1px);
@@ -339,6 +362,7 @@
         flex-wrap: wrap;
         justify-content: center;
         color: #fff;
+        text-align: center;
     }
 
     .media-modal-category {
@@ -352,125 +376,21 @@
         color: #fff;
     }
 
+    .media-modal-copy {
+        display: grid;
+        gap: .3rem;
+    }
+
     .media-modal-title {
         font-family: 'Space Grotesk', sans-serif;
         font-size: 1rem;
         font-weight: 700;
     }
 
-    .publish-modal {
-        background: rgba(15, 23, 42, .62);
-        backdrop-filter: blur(10px);
-    }
-
-    .publish-modal-panel {
-        width: min(560px, 100%);
-        border-radius: 24px;
-        background: #fff;
-        box-shadow: 0 30px 60px rgba(15, 23, 42, .22);
-        overflow: hidden;
-    }
-
-    .publish-modal-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 1.4rem 1.4rem 1rem;
-        border-bottom: 1px solid rgba(219, 225, 251, .86);
-    }
-
-    .publish-modal-head h3 {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.15rem;
-        color: var(--navy-950);
-    }
-
-    .publish-modal-head p {
-        margin-top: .35rem;
-        color: var(--ink-500);
-        font-size: .9rem;
+    .media-modal-meta {
+        color: rgba(255, 255, 255, .76);
+        font-size: .88rem;
         line-height: 1.6;
-    }
-
-    .publish-modal-close {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background: rgba(15, 23, 42, .08);
-        color: var(--navy-950);
-        font-size: 1.4rem;
-        flex-shrink: 0;
-    }
-
-    .publish-form {
-        display: grid;
-        gap: 1rem;
-        padding: 1.4rem;
-    }
-
-    .publish-form-row {
-        display: grid;
-        gap: .5rem;
-    }
-
-    .publish-form-row label {
-        font-size: .84rem;
-        font-weight: 800;
-        color: var(--navy-950);
-    }
-
-    .publish-form-row input,
-    .publish-form-row select {
-        width: 100%;
-        padding: .92rem 1rem;
-        border: 1px solid rgba(203, 213, 225, .95);
-        border-radius: 14px;
-        font: inherit;
-        color: var(--ink-900);
-        background: #fff;
-        outline: none;
-        transition: border-color .2s ease, box-shadow .2s ease;
-    }
-
-    .publish-form-row input:focus,
-    .publish-form-row select:focus {
-        border-color: rgba(59, 130, 246, .8);
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, .12);
-    }
-
-    .publish-form-actions {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: .75rem;
-        flex-wrap: wrap;
-        margin-top: .25rem;
-    }
-
-    .publish-form-secondary,
-    .publish-form-primary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: .5rem;
-        padding: .85rem 1.15rem;
-        border-radius: 14px;
-        border: none;
-        font: inherit;
-        font-size: .9rem;
-        font-weight: 700;
-        cursor: pointer;
-    }
-
-    .publish-form-secondary {
-        background: rgba(15, 23, 42, .06);
-        color: var(--navy-950);
-    }
-
-    .publish-form-primary {
-        background: #1e293b;
-        color: #fff;
     }
 
     @keyframes mediaCardIn {
@@ -499,7 +419,7 @@
             gap: .8rem;
         }
 
-        .media-gallery-publish {
+        .media-gallery-action {
             width: 100%;
         }
 
@@ -525,14 +445,29 @@
         <div class="media-gallery" id="mediaGallery">
             <div class="media-gallery-topbar">
                 <div class="media-gallery-tabs" id="mediaGalleryTabs"></div>
-                <button type="button" class="media-gallery-publish" id="openPublishModal">
-                    <span class="media-gallery-publish-icon">+</span>
-                    <span>Publier un media</span>
-                </button>
+
+                @auth
+                    @if(auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('gerer_galerie'))
+                        <a href="{{ route('admin.gallery-items.create') }}" class="media-gallery-action">
+                            <span class="media-gallery-action-icon">+</span>
+                            <span>Publier depuis l admin</span>
+                        </a>
+                    @else
+                        <button type="button" class="media-gallery-action is-disabled" aria-disabled="true" title="La publication est reservee aux responsables autorises.">
+                            <span class="media-gallery-action-icon">!</span>
+                            <span>Publication reservee aux responsables</span>
+                        </button>
+                    @endif
+                @else
+                    <a href="{{ route('login') }}" class="media-gallery-action">
+                        <span class="media-gallery-action-icon">+</span>
+                        <span>Se connecter pour publier</span>
+                    </a>
+                @endauth
             </div>
 
             <div class="media-gallery-grid" id="mediaGalleryGrid"></div>
-            <div class="media-gallery-empty" id="mediaGalleryEmpty" hidden>Aucun media ne correspond au filtre selectionne.</div>
+            <div class="media-gallery-empty" id="mediaGalleryEmpty" hidden>Aucun media public n est disponible pour le moment.</div>
         </div>
     </div>
 </section>
@@ -545,47 +480,13 @@
         <video class="media-modal-asset" id="lightboxVideo" controls hidden></video>
         <div class="media-modal-footer">
             <span class="media-modal-category" id="lightboxCategory"></span>
-            <span class="media-modal-title" id="lightboxTitle"></span>
+            <div class="media-modal-copy">
+                <span class="media-modal-title" id="lightboxTitle"></span>
+                <span class="media-modal-meta" id="lightboxMeta"></span>
+            </div>
         </div>
     </div>
     <button type="button" class="media-modal-nav next" id="nextMedia" aria-label="Media suivant">&#8250;</button>
-</div>
-
-<div class="publish-modal" id="publishModal" aria-hidden="true">
-    <div class="publish-modal-panel">
-        <div class="publish-modal-head">
-            <div>
-                <h3>Publier un media</h3>
-                <p>Ajoutez une image ou une video, choisissez la categorie et donnez-lui un titre.</p>
-            </div>
-            <button type="button" class="publish-modal-close" id="closePublishModal" aria-label="Fermer">&times;</button>
-        </div>
-        <form class="publish-form" id="publishMediaForm">
-            <div class="publish-form-row">
-                <label for="mediaFileInput">Uploader une photo ou une video</label>
-                <input id="mediaFileInput" name="file" type="file" accept="image/*,video/*" required>
-            </div>
-            <div class="publish-form-row">
-                <label for="mediaCategoryInput">Categorie</label>
-                <select id="mediaCategoryInput" name="categorie" required>
-                    <option value="">Choisir une categorie</option>
-                    <option value="Meute">Meute</option>
-                    <option value="Troupe">Troupe</option>
-                    <option value="Grappe">Grappe</option>
-                    <option value="Route">Route</option>
-                    <option value="Amical">Amical</option>
-                </select>
-            </div>
-            <div class="publish-form-row">
-                <label for="mediaTitleInput">Titre</label>
-                <input id="mediaTitleInput" name="titre" type="text" placeholder="Ex. Camp de la Meute" required>
-            </div>
-            <div class="publish-form-actions">
-                <button type="button" class="publish-form-secondary" id="cancelPublishModal">Annuler</button>
-                <button type="submit" class="publish-form-primary">Publier</button>
-            </div>
-        </form>
-    </div>
 </div>
 @endsection
 
@@ -603,43 +504,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const lightboxVideo = document.getElementById('lightboxVideo');
     const lightboxCategory = document.getElementById('lightboxCategory');
     const lightboxTitle = document.getElementById('lightboxTitle');
-    const publishModal = document.getElementById('publishModal');
-    const openPublishModalButton = document.getElementById('openPublishModal');
-    const closePublishModalButton = document.getElementById('closePublishModal');
-    const cancelPublishModalButton = document.getElementById('cancelPublishModal');
-    const publishMediaForm = document.getElementById('publishMediaForm');
-    const mediaFileInput = document.getElementById('mediaFileInput');
-    const mediaCategoryInput = document.getElementById('mediaCategoryInput');
-    const mediaTitleInput = document.getElementById('mediaTitleInput');
+    const lightboxMeta = document.getElementById('lightboxMeta');
 
-    const categoryColors = {
-        Toutes: '#64748b',
-        Meute: '#f59e0b',
-        Troupe: '#10b981',
-        Grappe: '#3b82f6',
-        Route: '#ef4444',
-        Amical: '#8b5cf6',
-    };
+    const mediaItems = {{ \Illuminate\Support\Js::from($galleryMedia) }};
+    const filters = ['Toutes'].concat(Array.from(new Set(mediaItems.map(function (item) {
+        return item.category;
+    }))));
+    const categoryColors = mediaItems.reduce(function (map, item) {
+        if (!map[item.category]) {
+            map[item.category] = item.badgeColor;
+        }
 
-    const filters = ['Toutes', 'Meute', 'Troupe', 'Grappe', 'Route', 'Amical'];
+        return map;
+    }, { Toutes: '#64748b' });
 
-    const sampleMedia = [
-        { id: 1, url: 'https://picsum.photos/seed/1/600/400', type: 'image', categorie: 'Meute', titre: 'Camp orange au lever du jour', date: '12 mai 2026' },
-        { id: 2, url: 'https://picsum.photos/seed/2/600/400', type: 'image', categorie: 'Troupe', titre: 'Grand jeu dans la foret', date: '17 mai 2026' },
-        { id: 3, url: 'https://picsum.photos/seed/3/600/400', type: 'image', categorie: 'Grappe', titre: 'Atelier projet et expression', date: '20 mai 2026' },
-        { id: 4, url: 'https://picsum.photos/seed/4/600/400', type: 'image', categorie: 'Route', titre: 'Depart en mission de service', date: '26 mai 2026' },
-        { id: 5, url: 'https://picsum.photos/seed/5/600/400', type: 'image', categorie: 'Amical', titre: 'Rencontre des anciens', date: '29 mai 2026' },
-        { id: 6, url: 'https://picsum.photos/seed/6/600/400', type: 'image', categorie: 'Meute', titre: 'Chants autour du feu', date: '02 juin 2026' },
-    ];
-
-    const cardHeights = [200, 224, 248, 280, 232, 260];
-    let mediaItems = sampleMedia.slice();
+    const cardHeights = [208, 228, 248, 276, 236, 260];
     let activeFilter = 'Toutes';
     let filteredItems = mediaItems.slice();
     let activeIndex = 0;
 
     function getBadgeColor(category) {
         return categoryColors[category] || '#64748b';
+    }
+
+    function getVisibleItems() {
+        if (activeFilter === 'Toutes') {
+            return mediaItems.slice();
+        }
+
+        return mediaItems.filter(function (item) {
+            return item.category === activeFilter;
+        });
     }
 
     function buildTabs() {
@@ -670,14 +565,43 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function getVisibleItems() {
-        if (activeFilter === 'Toutes') {
-            return mediaItems.slice();
+    function renderLightbox() {
+        const item = filteredItems[activeIndex];
+
+        if (!item) {
+            closeLightbox();
+            return;
         }
 
-        return mediaItems.filter(function (item) {
-            return item.categorie === activeFilter;
-        });
+        lightboxCategory.textContent = item.category;
+        lightboxCategory.style.backgroundColor = getBadgeColor(item.category);
+        lightboxTitle.textContent = item.title;
+
+        const metaParts = [item.date];
+
+        if (item.event) {
+            metaParts.push(item.event);
+        }
+
+        if (item.caption) {
+            metaParts.push(item.caption);
+        }
+
+        lightboxMeta.textContent = metaParts.join(' - ');
+
+        if (item.type === 'video') {
+            lightboxVideo.src = item.url;
+            lightboxVideo.hidden = false;
+            lightboxImage.hidden = true;
+        } else {
+            lightboxImage.src = item.url;
+            lightboxImage.alt = item.title;
+            lightboxImage.hidden = false;
+            lightboxVideo.hidden = true;
+            lightboxVideo.pause();
+            lightboxVideo.removeAttribute('src');
+            lightboxVideo.load();
+        }
     }
 
     function openLightbox(index) {
@@ -696,33 +620,6 @@ document.addEventListener('DOMContentLoaded', function () {
         lightboxVideo.removeAttribute('src');
         lightboxVideo.load();
         document.body.style.overflow = '';
-    }
-
-    function renderLightbox() {
-        const item = filteredItems[activeIndex];
-
-        if (!item) {
-            closeLightbox();
-            return;
-        }
-
-        lightboxCategory.textContent = item.categorie;
-        lightboxCategory.style.backgroundColor = getBadgeColor(item.categorie);
-        lightboxTitle.textContent = item.titre;
-
-        if (item.type === 'video') {
-            lightboxVideo.src = item.url;
-            lightboxVideo.hidden = false;
-            lightboxImage.hidden = true;
-        } else {
-            lightboxImage.src = item.url;
-            lightboxImage.alt = item.titre;
-            lightboxImage.hidden = false;
-            lightboxVideo.hidden = true;
-            lightboxVideo.pause();
-            lightboxVideo.removeAttribute('src');
-            lightboxVideo.load();
-        }
     }
 
     function renderGallery() {
@@ -752,17 +649,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 asset.loop = true;
                 asset.playsInline = true;
                 asset.autoplay = true;
+                asset.preload = 'metadata';
             } else {
-                asset.alt = item.titre;
+                asset.alt = item.title;
+                asset.loading = 'lazy';
             }
 
             badge.className = 'media-card-badge';
-            badge.style.backgroundColor = getBadgeColor(item.categorie);
-            badge.textContent = item.categorie;
+            badge.style.backgroundColor = getBadgeColor(item.category);
+            badge.textContent = item.category;
 
             searchButton.type = 'button';
             searchButton.className = 'media-card-search';
-            searchButton.setAttribute('aria-label', 'Ouvrir ' + item.titre);
+            searchButton.setAttribute('aria-label', 'Ouvrir ' + item.title);
             searchButton.innerHTML = '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M14.1667 14.1667L17.5 17.5M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
             searchButton.addEventListener('click', function (event) {
                 event.stopPropagation();
@@ -772,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function () {
             content.className = 'media-card-content';
             title.className = 'media-card-title';
             date.className = 'media-card-date';
-            title.textContent = item.titre;
+            title.textContent = item.title;
             date.textContent = item.date;
             content.appendChild(title);
             content.appendChild(date);
@@ -788,31 +687,6 @@ document.addEventListener('DOMContentLoaded', function () {
             grid.appendChild(article);
         });
     }
-
-    function openPublishModal() {
-        publishModal.classList.add('is-open');
-        publishModal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closePublishModal() {
-        publishModal.classList.remove('is-open');
-        publishModal.setAttribute('aria-hidden', 'true');
-        publishMediaForm.reset();
-        if (!lightbox.classList.contains('is-open')) {
-            document.body.style.overflow = '';
-        }
-    }
-
-    openPublishModalButton.addEventListener('click', openPublishModal);
-    closePublishModalButton.addEventListener('click', closePublishModal);
-    cancelPublishModalButton.addEventListener('click', closePublishModal);
-
-    publishModal.addEventListener('click', function (event) {
-        if (event.target === publishModal) {
-            closePublishModal();
-        }
-    });
 
     lightbox.addEventListener('click', function (event) {
         if (event.target === lightbox) {
@@ -841,53 +715,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('keydown', function (event) {
-        if (lightbox.classList.contains('is-open')) {
-            if (event.key === 'Escape') {
-                closeLightbox();
-            }
-
-            if (event.key === 'ArrowLeft') {
-                prevMediaButton.click();
-            }
-
-            if (event.key === 'ArrowRight') {
-                nextMediaButton.click();
-            }
-        }
-
-        if (publishModal.classList.contains('is-open') && event.key === 'Escape') {
-            closePublishModal();
-        }
-    });
-
-    publishMediaForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-
-        const file = mediaFileInput.files[0];
-        const category = mediaCategoryInput.value;
-        const title = mediaTitleInput.value.trim();
-
-        if (!file || !category || !title) {
+        if (!lightbox.classList.contains('is-open')) {
             return;
         }
 
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
-        const item = {
-            id: Date.now(),
-            url: URL.createObjectURL(file),
-            type: type,
-            categorie: category,
-            titre: title,
-            date: new Date().toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-            }),
-        };
+        if (event.key === 'Escape') {
+            closeLightbox();
+        }
 
-        mediaItems.unshift(item);
-        renderGallery();
-        closePublishModal();
+        if (event.key === 'ArrowLeft') {
+            prevMediaButton.click();
+        }
+
+        if (event.key === 'ArrowRight') {
+            nextMediaButton.click();
+        }
     });
 
     renderGallery();
