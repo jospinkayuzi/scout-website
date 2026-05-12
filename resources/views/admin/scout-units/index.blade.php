@@ -8,7 +8,7 @@
     <div class="card-header">
         <div>
             <h2><i class="fa-solid fa-tents"></i> Unites du groupe</h2>
-            <p style="color:var(--gray-500);font-size:.84rem;margin-top:.25rem;">Structure, identite visuelle et ordre d affichage du site.</p>
+            <p style="color:var(--gray-500);font-size:.84rem;margin-top:.25rem;">Structure, identite visuelle et acces rapide au programme journalier des unites.</p>
         </div>
         <a href="{{ route('admin.scout-units.create') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nouvelle unite</a>
     </div>
@@ -43,18 +43,17 @@
                             <td>
                                 <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
                                     <span class="badge badge-blue">{{ $unit->publications_count }} publications</span>
-                                    <span class="badge badge-purple">{{ $unit->gallery_items_count }} medias galerie</span>
                                     <span class="badge badge-amber">{{ $unit->program_events_count }} evenements</span>
                                     <span class="badge {{ $unit->is_active ? 'badge-green' : 'badge-gray' }}">{{ $unit->is_active ? 'Active' : 'Masquee' }}</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="actions">
-                                    <a href="{{ route('admin.gallery-items.index', ['scout_unit_id' => $unit->id]) }}" class="btn btn-secondary btn-sm" title="Voir la galerie">
-                                        <i class="fa-solid fa-images"></i>
+                                    <a href="{{ route('admin.program-events.index', ['scout_unit_id' => $unit->id]) }}" class="btn btn-secondary btn-sm" title="Voir le programme">
+                                        <i class="fa-solid fa-calendar-days"></i>
                                     </a>
-                                    <a href="{{ route('admin.gallery-items.create', ['scout_unit_id' => $unit->id]) }}" class="btn btn-success btn-sm" title="Ajouter un media">
-                                        <i class="fa-solid fa-camera"></i>
+                                    <a href="{{ route('admin.program-events.create', ['scout_unit_id' => $unit->id]) }}" class="btn btn-success btn-sm" title="Ajouter un evenement">
+                                        <i class="fa-solid fa-plus"></i>
                                     </a>
                                     <a href="{{ route('admin.scout-units.edit', $unit) }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen-to-square"></i></a>
                                     <form method="POST" action="{{ route('admin.scout-units.destroy', $unit) }}" onsubmit="return confirm('Supprimer cette unite ?');">

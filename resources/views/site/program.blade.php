@@ -17,7 +17,24 @@
                     <div class="card-title">{{ $unit->name }}</div>
                     <p class="card-copy">{{ $unit->schedule ?: 'Horaire a confirmer' }}</p>
                     <div class="timeline">
-                        @forelse($unit->programEvents as $event)
+                        @php
+                            $plannedActivities = collect($unit->planned_activities ?? []);
+                            $hasTimelineContent = $plannedActivities->isNotEmpty() || $unit->programEvents->isNotEmpty();
+                        @endphp
+
+                        @foreach($plannedActivities as $activity)
+                            <div class="timeline-item">
+                                <div class="timeline-date"><i class="fa-solid fa-clock"></i> {{ $activity['time'] ?: 'Heure a confirmer' }}</div>
+                                <div class="card-title" style="font-size:1rem;margin-top:.45rem;">{{ $activity['name'] ?: 'Activite' }}</div>
+                                @if(!empty($activity['responsible']))
+                                    <div class="meta-row">
+                                        <span class="pill">{{ $activity['responsible'] }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @foreach($unit->programEvents as $event)
                             <div class="timeline-item">
                                 <div class="timeline-date"><i class="fa-solid fa-calendar-days"></i> {{ $event->event_date->format('d/m/Y') }} @if($event->time_label) - {{ $event->time_label }} @endif</div>
                                 <div class="card-title" style="font-size:1rem;margin-top:.45rem;">{{ $event->title }}</div>
@@ -33,9 +50,11 @@
                                     @endif
                                 </div>
                             </div>
-                        @empty
+                        @endforeach
+
+                        @if(!$hasTimelineContent)
                             <div class="empty-state">Aucune activite planifiee pour cette unite.</div>
-                        @endforelse
+                        @endif
                     </div>
                 </article>
             @empty

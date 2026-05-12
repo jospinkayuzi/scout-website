@@ -17,6 +17,8 @@
         'Amical' => 'background:#f97316;color:#fff;',
         'Meute' => 'background:#eab308;color:#111827;',
         'Troupe' => 'background:#16a34a;color:#fff;',
+        'Troupe F' => 'background:#16a34a;color:#fff;',
+        'Troupe M' => 'background:#15803d;color:#fff;',
         'Grappe' => 'background:#2563eb;color:#fff;',
     ];
     $statusStyles = [

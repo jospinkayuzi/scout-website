@@ -4,170 +4,92 @@
 @section('breadcrumb', 'Tableau de bord')
 
 @section('content')
-<div class="stat-grid">
-    @foreach($overviewCards as $card)
-        <div class="stat-card">
-            <div class="stat-icon {{ $card['theme'] }}"><i class="{{ $card['icon'] }}"></i></div>
-            <div>
-                <div class="stat-value">{{ $card['value'] }}</div>
-                <div class="stat-label">{{ $card['label'] }}</div>
-            </div>
-        </div>
-    @endforeach
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <div>
-            <h2><i class="fa-solid fa-layer-group"></i> Modules de contenu</h2>
-            <p style="color:var(--gray-500);font-size:.84rem;margin-top:.25rem;">Tous les contenus dynamiques sont maintenant gerables depuis l administration.</p>
-        </div>
-    </div>
-    <div class="card-body padded">
-        <div class="module-grid">
-            @forelse($contentModules as $module)
-                <article class="module-card">
-                    <div class="module-top">
-                        <div class="stat-icon {{ $module['theme'] }}"><i class="{{ $module['icon'] }}"></i></div>
-                        <span class="badge badge-{{ $module['theme'] }}">{{ $module['count'] }} elements</span>
-                    </div>
-                    <div>
-                        <div class="module-title">{{ $module['label'] }}</div>
-                        <p class="module-copy">{{ $module['description'] }}</p>
-                    </div>
-                    <div class="module-footer">
-                        <a href="{{ $module['route'] }}" class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-arrow-right"></i> Ouvrir
-                        </a>
-                    </div>
-                </article>
-            @empty
-                <div class="empty-state" style="grid-column:1/-1;">
-                    <i class="fa-solid fa-lock"></i>
-                    <p>Aucun module supplementaire n est disponible pour ce profil.</p>
+@if(!empty($overviewCards))
+    <div class="stat-grid">
+        @foreach($overviewCards as $card)
+            <div class="stat-card">
+                <div class="stat-icon {{ $card['theme'] }}"><i class="{{ $card['icon'] }}"></i></div>
+                <div>
+                    <div class="stat-value">{{ $card['value'] }}</div>
+                    <div class="stat-label">{{ $card['label'] }}</div>
                 </div>
-            @endforelse
-        </div>
+            </div>
+        @endforeach
     </div>
-</div>
+@endif
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.25rem;">
+@if($reviewAccess['can_review'])
     <div class="card">
         <div class="card-header">
-            <h2><i class="fa-solid fa-clock-rotate-left"></i> Derniers utilisateurs</h2>
-            @if(auth()->user()->hasPermission('gerer_utilisateurs') || auth()->user()->isSuperAdmin())
-                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-plus"></i> Nouvel utilisateur
-                </a>
-            @endif
+            <div>
+                <h2><i class="fa-solid fa-user-clock"></i> Inscriptions a valider</h2>
+                <p style="color:var(--gray-500);font-size:.84rem;margin-top:.25rem;">
+                    {{ $reviewAccess['can_manage_all_units'] ? 'Validez les nouvelles demandes du groupe depuis le dashboard.' : 'Validez uniquement les demandes de votre unite depuis le dashboard.' }}
+                </p>
+            </div>
+            <span class="badge badge-amber">{{ $pendingRegistrations->count() }} affichees</span>
         </div>
-        <div class="card-body padded">
-            <div class="stack-list">
-                @forelse($recentUsers as $user)
-                    <div class="stack-item">
-                        <div>
-                            <div class="stack-title">{{ $user->name }}</div>
-                            <div class="stack-subtitle">{{ $user->email }}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="badge badge-gray">{{ $user->role->name ?? 'Aucun role' }}</div>
-                            <div class="stack-subtitle">{{ $user->created_at->format('d/m/Y H:i') }}</div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">
-                        <i class="fa-solid fa-users-slash"></i>
-                        <p>Aucun utilisateur</p>
-                    </div>
-                @endforelse
+        <div class="card-body">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Membre</th>
+                            <th>Unite</th>
+                            <th>Contact</th>
+                            <th>Date</th>
+                            <th style="text-align:right;">Validation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pendingRegistrations as $member)
+                            <tr>
+                                <td>
+                                    <div style="font-weight:700;">{{ $member->full_name }}</div>
+                                    <div style="color:var(--gray-500);font-size:.8rem;">{{ $member->age ? $member->age . ' ans' : 'Age non renseigne' }}</div>
+                                </td>
+                                <td>{{ $member->scoutUnit->name ?? 'Sans unite' }}</td>
+                                <td>
+                                    <div>{{ $member->phone ?: 'Sans telephone' }}</div>
+                                    <div style="color:var(--gray-500);font-size:.8rem;">{{ $member->guardian_phone ?: ($member->parent_name ?: 'Sans contact tuteur') }}</div>
+                                </td>
+                                <td>{{ optional($member->registered_at)->format('d/m/Y') ?: 'Sans date' }}</td>
+                                <td>
+                                    <div class="actions">
+                                        <form method="POST" action="{{ route('admin.members.approve', $member) }}" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm" title="Approuver"><i class="fa-solid fa-check"></i> Approuver</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('admin.members.reject', $member) }}" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Rejeter" onclick="return confirm('Rejeter cette inscription ?');"><i class="fa-solid fa-xmark"></i> Rejeter</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-check-double"></i>
+                                        <p>Aucune inscription en attente pour le moment.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+@endif
 
+@if(empty($overviewCards) && !$reviewAccess['can_review'])
     <div class="card">
-        <div class="card-header">
-            <h2><i class="fa-solid fa-id-card"></i> Inscriptions recentes</h2>
-            <span class="badge badge-blue">{{ $recentMembers->count() }} recentes</span>
-        </div>
-        <div class="card-body padded">
-            <div class="stack-list">
-                @forelse($recentMembers as $member)
-                    <div class="stack-item">
-                        <div>
-                            <div class="stack-title">{{ $member->full_name }}</div>
-                            <div class="stack-subtitle">{{ $member->scoutUnit->name ?? 'Sans unite' }}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <span class="badge {{ $member->status === 'active' ? 'badge-green' : ($member->status === 'pending' ? 'badge-amber' : 'badge-gray') }}">
-                                {{ ucfirst($member->status) }}
-                            </span>
-                            <div class="stack-subtitle">{{ optional($member->registered_at)->format('d/m/Y') }}</div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">
-                        <i class="fa-solid fa-id-card-clip"></i>
-                        <p>Aucune inscription recente</p>
-                    </div>
-                @endforelse
-            </div>
+        <div class="empty-state">
+            <i class="fa-solid fa-lock"></i>
+            <p>Aucun contenu essentiel n est disponible sur ce dashboard pour votre profil.</p>
         </div>
     </div>
-
-    <div class="card">
-        <div class="card-header">
-            <h2><i class="fa-solid fa-newspaper"></i> Publications recentes</h2>
-            <span class="badge badge-purple">{{ $recentPublications->count() }} elements</span>
-        </div>
-        <div class="card-body padded">
-            <div class="stack-list">
-                @forelse($recentPublications as $publication)
-                    <div class="stack-item">
-                        <div>
-                            <div class="stack-title">{{ $publication->title }}</div>
-                            <div class="stack-subtitle">{{ $publication->scoutUnit->name ?? 'Tous' }} - {{ $publication->author ?? 'GSN' }}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <span class="badge badge-blue">{{ ucfirst($publication->type) }}</span>
-                            <div class="stack-subtitle">{{ optional($publication->publication_date)->format('d/m/Y') }}</div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">
-                        <i class="fa-solid fa-folder-open"></i>
-                        <p>Aucune publication</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">
-            <h2><i class="fa-solid fa-calendar-days"></i> Evenements a venir</h2>
-            <span class="badge badge-amber">{{ $upcomingEvents->count() }} a suivre</span>
-        </div>
-        <div class="card-body padded">
-            <div class="stack-list">
-                @forelse($upcomingEvents as $event)
-                    <div class="stack-item">
-                        <div>
-                            <div class="stack-title">{{ $event->title }}</div>
-                            <div class="stack-subtitle">{{ $event->scoutUnit->name ?? 'Toutes les unites' }} @if($event->location) - {{ $event->location }} @endif</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="badge badge-amber">{{ $event->event_date->format('d/m/Y') }}</div>
-                            <div class="stack-subtitle">{{ $event->time_label ?? 'Horaire a definir' }}</div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">
-                        <i class="fa-solid fa-calendar-xmark"></i>
-                        <p>Aucun evenement programme.</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-</div>
+@endif
 @endsection

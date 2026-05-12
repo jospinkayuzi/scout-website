@@ -18,6 +18,9 @@
             @if($errors->any())
                 <div class="alert alert-fail">Le formulaire contient des erreurs. Verifiez les champs ci-dessous.</div>
             @endif
+            <div class="alert alert-info" style="margin-bottom:1rem;">
+                Une fois le formulaire envoye, la demande reste en attente jusqu'a l'approbation du chef d'unite dans le dashboard.
+            </div>
 
             <form method="POST" action="{{ route('members.register') }}" id="joinForm" novalidate>
                 @csrf
@@ -114,7 +117,7 @@
                         <div class="form-section-head">
                             <div class="section-badge">Parent ou tuteur</div>
                             <h3>Une personne de reference si necessaire</h3>
-                            <p>Ces informations deviennent obligatoires pour les branches des plus jeunes.</p>
+                            <p>Le nom du parent ou tuteur et son telephone deviennent obligatoires pour la meute et la troupe.</p>
                         </div>
                         <div class="form-grid section-grid">
                             <div class="form-group full">
@@ -205,12 +208,12 @@
     function updateRequirements() {
         const selected = findSelectedUnitOption();
         const slug = selected?.dataset?.slug || '';
-        const needsGuardian = ['meute', 'troupe-f', 'troupe-m', 'grappe'].includes(slug);
+        const needsGuardian = ['meute', 'troupe-f', 'troupe-m'].includes(slug);
         const needsPhone = ['route', 'amical'].includes(slug);
 
         setRequiredState(phone, phoneLabel, 'Numero de telephone', needsPhone);
         setRequiredState(parentName, parentLabel, 'Nom complet du parent ou tuteur', needsGuardian);
-        setRequiredState(guardianRelationship, guardianRelationshipLabel, 'Lien de parente', needsGuardian);
+        setRequiredState(guardianRelationship, guardianRelationshipLabel, 'Lien de parente', false);
         setRequiredState(guardianPhone, guardianPhoneLabel, 'Telephone du tuteur', needsGuardian);
         updateProgress();
     }

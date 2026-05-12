@@ -26,6 +26,12 @@
         <script src="{{ asset('assets/site.js') }}" defer></script>
     @endif
     @stack('styles')
+    <style>
+        .social-link i{
+            font-size: 22px; /* taille des icônes */
+            margin-right: 15px; /* espacement entre les icônes */
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -84,7 +90,7 @@
                     <img src="{{ asset('images/logo-gsn.png') }}" alt="GSN">
                     <div>
                         <div class="footer-title">Groupe Scout Saint Nicolas</div>
-                        <p class="footer-copy">Toujours Prêt à Servir!</p>
+                        <p class="footer-copy">Toujours PrÃªt Ã  Servir!</p>
                     </div>
                 </div>
             </div>
@@ -107,7 +113,11 @@
         </div>
         <div class="footer-bottom">
             <span>&copy; {{ now()->year }} Groupe Scout Saint Nicolas</span>
-            <span>Bonne Chasse à toi qui garde la loi</span>
+            <div>                
+                <a href="https://www.facebook.com/scoutsaintnico" class="social-link"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="https://x.com/Stnicolascout" class="social-link"><i class="fa-brands fa-x-twitter"></i></a>
+                <a href="https://www.instagram.com/groupesaintnicolas/" class="social-link"><i class="fa-brands fa-instagram"></i></a>
+            </div>
         </div>
     </footer>
 

@@ -1,3 +1,9 @@
+@php
+    $plannedActivities = old('planned_activities', $scoutUnit->planned_activities ?? []);
+    $plannedActivities = is_array($plannedActivities) ? $plannedActivities : [];
+    $plannedActivities = array_slice(array_pad($plannedActivities, 3, []), 0, 3);
+@endphp
+
 <div class="form-grid">
     <div class="form-group">
         <label class="form-label">Nom *</label>
@@ -23,6 +29,34 @@
         <label class="form-label">Horaire</label>
         <input type="text" name="schedule" value="{{ old('schedule', $scoutUnit->schedule ?? '') }}" class="form-input">
         @error('schedule') <span class="form-error">{{ $message }}</span> @enderror
+    </div>
+    <div class="form-group full">
+        <label class="form-label">Activites planifiees</label>
+        <div style="display:grid;gap:1rem;">
+            @foreach($plannedActivities as $index => $activity)
+                <div style="border:1px solid var(--gray-200);border-radius:16px;padding:1rem;background:rgba(255,255,255,.72);">
+                    <div style="font-weight:700;margin-bottom:.75rem;">Activite {{ $index + 1 }}</div>
+                    <div class="form-grid" style="margin:0;">
+                        <div class="form-group">
+                            <label class="form-label">Nom de l activite</label>
+                            <input type="text" name="planned_activities[{{ $index }}][name]" value="{{ old("planned_activities.$index.name", $activity['name'] ?? '') }}" class="form-input" placeholder="Jeu de piste">
+                            @error("planned_activities.$index.name") <span class="form-error">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Responsable de l activite</label>
+                            <input type="text" name="planned_activities[{{ $index }}][responsible]" value="{{ old("planned_activities.$index.responsible", $activity['responsible'] ?? '') }}" class="form-input" placeholder="Akela">
+                            @error("planned_activities.$index.responsible") <span class="form-error">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Heure de l activite</label>
+                            <input type="text" name="planned_activities[{{ $index }}][time]" value="{{ old("planned_activities.$index.time", $activity['time'] ?? '') }}" class="form-input" placeholder="09h00 - 11h00">
+                            @error("planned_activities.$index.time") <span class="form-error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        @error('planned_activities') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group">
         <label class="form-label">Public</label>

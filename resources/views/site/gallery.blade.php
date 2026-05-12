@@ -1,9 +1,17 @@
 @php
     $galleryMedia = $galleryItems
         ->map(function ($item) {
+            $unitSlug = $item->scoutUnit?->slug;
             $mediaPath = \Illuminate\Support\Str::startsWith($item->media_path, ['http://', 'https://'])
                 ? $item->media_path
                 : asset($item->media_path);
+            $badgeColor = match ($unitSlug) {
+                'troupe',
+                'troupe-f',
+                'troupe-m' => '#16a34a',
+                'route' => '#dc2626',
+                default => $item->scoutUnit?->color ?? '#1e293b',
+            };
 
             return [
                 'id' => $item->id,
@@ -14,7 +22,7 @@
                 'caption' => $item->caption ?: 'Souvenir du Groupe Scout Saint Nicolas.',
                 'event' => $item->event_name,
                 'date' => optional($item->taken_at)->format('d/m/Y') ?: 'Date non precisee',
-                'badgeColor' => $item->scoutUnit?->color ?? '#1e293b',
+                'badgeColor' => $badgeColor,
             ];
         })
         ->values();

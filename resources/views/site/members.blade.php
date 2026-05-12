@@ -10,7 +10,7 @@
     <div class="section-shell">
         <div class="stats-grid">
             <div class="stat-chip"><strong>{{ $memberStats['active'] }}</strong><span>Actifs</span></div>
-            <div class="stat-chip"><strong>{{ $memberStats['pending'] }}</strong><span>En attente</span></div>
+            <div class="stat-chip"><strong>{{ $memberStats['pending'] }}</strong><span>En validation</span></div>
             <div class="stat-chip"><strong>{{ $memberStats['inactive'] }}</strong><span>Inactifs</span></div>
             <div class="stat-chip"><strong>{{ $memberStats['total'] }}</strong><span>Total</span></div>
         </div>
@@ -19,8 +19,36 @@
 
 <section>
     <div class="section-shell">
+        <article class="callout-card">
+            <div class="section-head">
+                <h2 class="section-title">Inscription et <span>validation</span></h2>
+                <p class="section-copy">Le site public et le dashboard travaillent maintenant ensemble pour gerer les nouvelles demandes.</p>
+            </div>
+            <div class="timeline-grid">
+                <div class="timeline-step">
+                    <span class="timeline-index">01</span>
+                    <h3>Inscription sur le site</h3>
+                    <p>Le futur membre remplit le formulaire public avec son unite proposee automatiquement.</p>
+                </div>
+                <div class="timeline-step">
+                    <span class="timeline-index">02</span>
+                    <h3>Validation dans le dashboard</h3>
+                    <p>Le chef d'unite voit la demande dans son dashboard et l'approuve ou la rejette.</p>
+                </div>
+                <div class="timeline-step">
+                    <span class="timeline-index">03</span>
+                    <h3>Affichage sur le site</h3>
+                    <p>Seuls les membres approuves apparaissent dans les listes publiques et les tableaux du site.</p>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+<section>
+    <div class="section-shell">
         <div class="tab-navigation">
-            <a href="#recent" class="tab-link active">Dernieres inscriptions</a>
+            <a href="#recent" class="tab-link active">Derniers approuves</a>
             <a href="#maitrise" class="tab-link">Maitrise</a>
             <a href="#team-field" class="tab-link">Champ des membres</a>
             <a href="#units" class="tab-link">Par unite</a>
@@ -32,8 +60,8 @@
     <div class="section-shell callout-grid">
         <article class="callout-card">
             <div class="section-head">
-                <h2 class="section-title">Dernieres <span>inscriptions</span></h2>
-                <p class="section-copy">Les inscriptions publiques sont stockees en base et retrouvent leur place dans une page dediee au suivi des membres.</p>
+                <h2 class="section-title">Derniers membres <span>approuves</span></h2>
+                <p class="section-copy">Le site public affiche ici les membres deja valides depuis le dashboard par le chef d'unite ou l'administration.</p>
             </div>
             <div class="member-list">
                 @forelse($recentMembers as $member)
@@ -94,7 +122,7 @@
         <x-members-team-table
             :members="$teamMembersTable"
             title="Champ des membres"
-            summary="Un composant de tableau propre et moderne pour une application de gestion d'equipes, avec badges colores, recherche et filtre par unite."
+            summary="Ce tableau reprend les membres actifs valides dans le dashboard et permet une lecture rapide par unite."
         />
     </div>
 </section>

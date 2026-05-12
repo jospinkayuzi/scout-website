@@ -5,56 +5,61 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\GalleryItem;
 use App\Models\Member;
-use App\Models\Permission;
 use App\Models\ProgramEvent;
 use App\Models\Publication;
-use App\Models\Role;
 use App\Models\ScoutUnit;
-use App\Models\SiteSetting;
-use App\Models\User;
+use App\Support\MemberRegistrationReview;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $overviewCards = [
-            [
-                'value' => User::count(),
-                'label' => 'Utilisateurs',
-                'icon' => 'fa-solid fa-users',
-                'theme' => 'green',
-            ],
-            [
-                'value' => Role::count(),
-                'label' => 'Roles',
-                'icon' => 'fa-solid fa-shield-halved',
-                'theme' => 'amber',
-            ],
-            [
-                'value' => Permission::count(),
-                'label' => 'Permissions',
-                'icon' => 'fa-solid fa-key',
-                'theme' => 'blue',
-            ],
-        ];
+        $user = auth()->user();
+        $canAccess = fn (string $permission): bool => $user->isSuperAdmin() || $user->hasPermission($permission);
+
+        $reviewAccess = Schema::hasTable('members') && Schema::hasTable('scout_units')
+            ? MemberRegistrationReview::forUser($user)
+            : [
+                'can_review' => false,
+                'can_manage_all_units' => false,
+                'allowed_unit_ids' => [],
+            ];
+
+        $activeMembersCount = 0;
+        $pendingMembersCount = 0;
 
         if (Schema::hasTable('members')) {
+            $activeMembersQuery = Member::query()->where('status', 'active');
+            $pendingMembersQuery = Member::query()->where('status', 'pending');
+
+            if ($reviewAccess['can_review'] && !$reviewAccess['can_manage_all_units']) {
+                $activeMembersQuery->whereIn('scout_unit_id', $reviewAccess['allowed_unit_ids']);
+                $pendingMembersQuery->whereIn('scout_unit_id', $reviewAccess['allowed_unit_ids']);
+            }
+
+            $activeMembersCount = $activeMembersQuery->count();
+            $pendingMembersCount = $pendingMembersQuery->count();
+        }
+
+        $overviewCards = [];
+
+        if (Schema::hasTable('members') && ($reviewAccess['can_review'] || $canAccess('gerer_membres'))) {
             $overviewCards[] = [
-                'value' => Member::where('status', 'active')->count(),
-                'label' => 'Membres actifs',
+                'value' => $activeMembersCount,
+                'label' => $reviewAccess['can_review'] && !$reviewAccess['can_manage_all_units'] ? 'Membres actifs de mon unite' : 'Membres actifs',
                 'icon' => 'fa-solid fa-user-check',
                 'theme' => 'purple',
             ];
             $overviewCards[] = [
-                'value' => Member::where('status', 'pending')->count(),
-                'label' => 'Demandes en attente',
+                'value' => $pendingMembersCount,
+                'label' => $reviewAccess['can_review'] && !$reviewAccess['can_manage_all_units'] ? 'Demandes de mon unite' : 'Demandes en attente',
                 'icon' => 'fa-solid fa-hourglass-half',
                 'theme' => 'amber',
             ];
         }
 
-        if (Schema::hasTable('scout_units')) {
+        if (Schema::hasTable('scout_units') && $canAccess('gerer_parametres')) {
             $overviewCards[] = [
                 'value' => ScoutUnit::where('is_active', true)->count(),
                 'label' => 'Unites actives',
@@ -63,7 +68,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if (Schema::hasTable('publications')) {
+        if (Schema::hasTable('publications') && $canAccess('gerer_publications')) {
             $overviewCards[] = [
                 'value' => Publication::where('is_published', true)->count(),
                 'label' => 'Publications',
@@ -72,7 +77,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if (Schema::hasTable('gallery_items')) {
+        if (Schema::hasTable('gallery_items') && $canAccess('gerer_galerie')) {
             $overviewCards[] = [
                 'value' => GalleryItem::count(),
                 'label' => 'Medias',
@@ -81,7 +86,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if (Schema::hasTable('program_events')) {
+        if (Schema::hasTable('program_events') && $canAccess('gerer_parametres')) {
             $overviewCards[] = [
                 'value' => ProgramEvent::whereDate('event_date', '>=', now()->toDateString())->count(),
                 'label' => 'Evenements a venir',
@@ -90,94 +95,20 @@ class DashboardController extends Controller
             ];
         }
 
-        $recentUsers = User::with('role')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $recentMembers = Schema::hasTable('members')
-            ? Member::with('scoutUnit')->orderByDesc('registered_at')->latest()->take(5)->get()
-            : collect();
-
-        $recentPublications = Schema::hasTable('publications')
-            ? Publication::with('scoutUnit')->orderByDesc('publication_date')->take(5)->get()
-            : collect();
-
-        $upcomingEvents = Schema::hasTable('program_events')
-            ? ProgramEvent::with('scoutUnit')
-                ->whereDate('event_date', '>=', now()->toDateString())
-                ->orderBy('event_date')
-                ->orderBy('sort_order')
-                ->take(5)
+        $pendingRegistrations = Schema::hasTable('members')
+            ? Member::with('scoutUnit')
+                ->where('status', 'pending')
+                ->when($reviewAccess['can_review'] && !$reviewAccess['can_manage_all_units'], fn ($query) => $query->whereIn('scout_unit_id', $reviewAccess['allowed_unit_ids']))
+                ->orderByDesc('registered_at')
+                ->latest()
+                ->take(6)
                 ->get()
             : collect();
 
-        $contentModules = collect([
-            [
-                'label' => 'Unites',
-                'description' => 'Gerer les branches, leaders, couleurs et ordre d affichage du site.',
-                'icon' => 'fa-solid fa-tents',
-                'count' => Schema::hasTable('scout_units') ? ScoutUnit::count() : 0,
-                'theme' => 'green',
-                'route' => route('admin.scout-units.index'),
-                'permission' => 'gerer_parametres',
-            ],
-            [
-                'label' => 'Programme',
-                'description' => 'Planifier les evenements publics et l agenda des unites.',
-                'icon' => 'fa-solid fa-calendar-days',
-                'count' => Schema::hasTable('program_events') ? ProgramEvent::count() : 0,
-                'theme' => 'amber',
-                'route' => route('admin.program-events.index'),
-                'permission' => 'gerer_parametres',
-            ],
-            [
-                'label' => 'Publications',
-                'description' => 'Publier reglements, annonces, articles et documents officiels.',
-                'icon' => 'fa-solid fa-newspaper',
-                'count' => Schema::hasTable('publications') ? Publication::count() : 0,
-                'theme' => 'blue',
-                'route' => route('admin.publications.index'),
-                'permission' => 'gerer_publications',
-            ],
-            [
-                'label' => 'Galerie',
-                'description' => 'Mettre a jour les medias, captions et mises en avant.',
-                'icon' => 'fa-solid fa-images',
-                'count' => Schema::hasTable('gallery_items') ? GalleryItem::count() : 0,
-                'theme' => 'purple',
-                'route' => route('admin.gallery-items.index'),
-                'permission' => 'gerer_galerie',
-            ],
-            [
-                'label' => 'Membres',
-                'description' => 'Suivre les inscriptions, statuts et informations des membres.',
-                'icon' => 'fa-solid fa-id-card',
-                'count' => Schema::hasTable('members') ? Member::count() : 0,
-                'theme' => 'green',
-                'route' => route('admin.members.index'),
-                'permission' => 'gerer_membres',
-            ],
-            [
-                'label' => 'Parametres',
-                'description' => 'Ajuster le contenu du hero, mission, valeurs, objectifs et contact.',
-                'icon' => 'fa-solid fa-sliders',
-                'count' => Schema::hasTable('site_settings') ? SiteSetting::count() : 0,
-                'theme' => 'blue',
-                'route' => route('admin.site-settings.index'),
-                'permission' => 'gerer_parametres',
-            ],
-        ])->filter(function (array $module) {
-            return auth()->user()->isSuperAdmin() || auth()->user()->hasPermission($module['permission']);
-        })->values();
-
         return view('admin.dashboard', compact(
             'overviewCards',
-            'recentUsers',
-            'recentMembers',
-            'recentPublications',
-            'upcomingEvents',
-            'contentModules',
+            'pendingRegistrations',
+            'reviewAccess',
         ));
     }
 }

@@ -63,7 +63,8 @@ class RolesAndPermissionsSeeder extends Seeder
                 'name' => 'Administrateur',
                 'email' => 'admin@gsn.bi',
                 'password' => Hash::make('password123'),
-                'role_id' => $superAdmin->id,
+                'role_id' 
+                => $superAdmin->id,
             ]);
         }
     }

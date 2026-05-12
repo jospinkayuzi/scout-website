@@ -1,3 +1,9 @@
+@php
+    $selectedUnitId = (string) old('scout_unit_id', $member->scout_unit_id ?? '');
+    $selectedUnit = $units->first(fn ($unit) => (string) $unit->id === $selectedUnitId);
+    $requiresParentContact = in_array($selectedUnit?->slug, ['meute', 'troupe-f', 'troupe-m'], true);
+@endphp
+
 <div class="form-grid">
     <div class="form-group">
         <label class="form-label">Prenom *</label>
@@ -16,10 +22,10 @@
     </div>
     <div class="form-group">
         <label class="form-label">Unite *</label>
-        <select name="scout_unit_id" class="form-select" required>
+        <select name="scout_unit_id" id="scout_unit_id" class="form-select" required>
             <option value="">Choisir une unite</option>
             @foreach($units as $unit)
-                <option value="{{ $unit->id }}" @selected((string) old('scout_unit_id', $member->scout_unit_id ?? '') === (string) $unit->id)>{{ $unit->name }}</option>
+                <option value="{{ $unit->id }}" data-slug="{{ $unit->slug }}" @selected((string) old('scout_unit_id', $member->scout_unit_id ?? '') === (string) $unit->id)>{{ $unit->name }}</option>
             @endforeach
         </select>
         @error('scout_unit_id') <span class="form-error">{{ $message }}</span> @enderror
@@ -100,13 +106,13 @@
         @error('address') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group full">
-        <label class="form-label">Parent / tuteur</label>
-        <input type="text" name="parent_name" value="{{ old('parent_name', $member->parent_name ?? '') }}" class="form-input">
+        <label class="form-label" id="parent_name_label">Parent / tuteur{{ $requiresParentContact ? ' *' : '' }}</label>
+        <input type="text" id="parent_name" name="parent_name" value="{{ old('parent_name', $member->parent_name ?? '') }}" class="form-input" @required($requiresParentContact)>
         @error('parent_name') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group">
-        <label class="form-label">Lien de parente</label>
-        <select name="guardian_relationship" class="form-select">
+        <label class="form-label" id="guardian_relationship_label">Lien de parente</label>
+        <select id="guardian_relationship" name="guardian_relationship" class="form-select">
             <option value="">Choisir</option>
             @foreach(['Pere', 'Mere', 'Frere / soeur', 'Oncle / tante', 'Grand-parent', 'Tuteur legal', 'Autre'] as $relationship)
                 <option value="{{ $relationship }}" @selected(old('guardian_relationship', $member->guardian_relationship ?? '') === $relationship)>{{ $relationship }}</option>
@@ -115,8 +121,8 @@
         @error('guardian_relationship') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group">
-        <label class="form-label">Telephone du tuteur</label>
-        <input type="text" name="guardian_phone" value="{{ old('guardian_phone', $member->guardian_phone ?? '') }}" class="form-input">
+        <label class="form-label" id="guardian_phone_label">Telephone du tuteur{{ $requiresParentContact ? ' *' : '' }}</label>
+        <input type="text" id="guardian_phone" name="guardian_phone" value="{{ old('guardian_phone', $member->guardian_phone ?? '') }}" class="form-input" @required($requiresParentContact)>
         @error('guardian_phone') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="form-group full">
@@ -135,3 +141,37 @@
     <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
     <a href="{{ route('admin.members.index') }}" class="btn btn-secondary">Annuler</a>
 </div>
+
+<script>
+    (() => {
+        const unitField = document.getElementById('scout_unit_id');
+        const parentField = document.getElementById('parent_name');
+        const parentLabel = document.getElementById('parent_name_label');
+        const guardianPhoneField = document.getElementById('guardian_phone');
+        const guardianPhoneLabel = document.getElementById('guardian_phone_label');
+        const guardianRelationshipField = document.getElementById('guardian_relationship');
+        const guardianRelationshipLabel = document.getElementById('guardian_relationship_label');
+
+        function setRequiredState(field, label, text, required) {
+            if (!field || !label) {
+                return;
+            }
+
+            field.required = required;
+            label.textContent = required ? `${text} *` : text;
+        }
+
+        function updateParentRequirements() {
+            const selectedOption = unitField?.options[unitField.selectedIndex];
+            const slug = selectedOption?.dataset?.slug || '';
+            const needsParentContact = ['meute', 'troupe-f', 'troupe-m'].includes(slug);
+
+            setRequiredState(parentField, parentLabel, 'Parent / tuteur', needsParentContact);
+            setRequiredState(guardianPhoneField, guardianPhoneLabel, 'Telephone du tuteur', needsParentContact);
+            setRequiredState(guardianRelationshipField, guardianRelationshipLabel, 'Lien de parente', false);
+        }
+
+        unitField?.addEventListener('change', updateParentRequirements);
+        updateParentRequirements();
+    })();
+</script>

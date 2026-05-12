@@ -53,7 +53,7 @@ class PublicRegistrationTest extends TestCase
         $this->assertSame(now()->subYears(10)->toDateString(), $member->birth_date->toDateString());
     }
 
-    public function test_public_registration_requires_guardian_details_for_minor_units(): void
+    public function test_public_registration_requires_parent_name_and_guardian_phone_for_meute_and_troupe(): void
     {
         ScoutUnit::create([
             'name' => 'Troupe F',
@@ -74,8 +74,10 @@ class PublicRegistrationTest extends TestCase
         $response->assertRedirect(route('site.join'));
         $response->assertSessionHasErrors([
             'parent_name',
-            'guardian_relationship',
             'guardian_phone',
+        ]);
+        $response->assertSessionDoesntHaveErrors([
+            'guardian_relationship',
         ]);
     }
 

@@ -20,6 +20,7 @@ class ScoutUnit extends Model
         'accent_color',
         'leader_name',
         'schedule',
+        'planned_activities',
         'gender_scope',
         'sort_order',
         'is_active',
@@ -27,6 +28,7 @@ class ScoutUnit extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'planned_activities' => 'array',
     ];
 
     public function members()

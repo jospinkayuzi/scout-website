@@ -297,7 +297,7 @@
             </div>
             <div class="hero-panel" style="width:100%;max-width:920px;margin-top:2rem;">
                 <div class="card-title" style="color:#fff;text-align:center;">Une plateforme plus claire pour les familles, les chefs et les membres.</div>
-                <p class="card-copy" style="color:rgba(255,255,255,.72);margin-top:.6rem;text-align:center;">Le site n est plus une simple vitrine. L accueil presente maintenant directement notre mission, nos valeurs, nos objectifs et nos unites.</p>
+                <p class="card-copy" style="color:rgba(255,255,255,.72);margin-top:.6rem;text-align:center;">Le site n est plus une simple vitrine. Les inscriptions arrivent ici, puis le chef d unite les valide dans le dashboard avant leur affichage public.</p>
                 <div class="hero-panel-grid" style="margin-top:1.4rem;">
                     <div class="hero-metric"><strong>{{ $siteStats['members_active'] }}</strong><span>Membres actifs suivis dans la base de donnees</span></div>
                     <div class="hero-metric"><strong>{{ $siteStats['units'] }}</strong><span>Unites organisees avec leur programme</span></div>
@@ -322,7 +322,7 @@
             <article class="home-about-mission">
                 <div class="home-about-mission-grid">
                     <div>
-                        <h3 class="home-about-mission-title">Former des jeunes prêts a servir</h3>
+                        <h3 class="home-about-mission-title">Former des jeunes prÃªts a servir</h3>
                         <div class="home-about-mission-divider"></div>
                         <p class="home-about-mission-text">{{ $mission['text'] ?? "Le Groupe Scout Saint Nicolas contribue a l'education integrale des jeunes a travers la Promesse et la Loi scoutes, dans un cadre de service, d'aventure et de responsabilite." }}</p>
                     </div>

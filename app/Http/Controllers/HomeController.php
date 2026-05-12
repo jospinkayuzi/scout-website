@@ -150,7 +150,7 @@ class HomeController extends Controller
         ]);
 
         return redirect()->route('site.join')
-            ->with('success', "L'inscription a ete enregistree avec succes.");
+            ->with('success', "L'inscription a ete enregistree et transmise au chef d'unite pour approbation.");
     }
 
     private function sharedPageData(): array
@@ -279,6 +279,7 @@ class HomeController extends Controller
 
         $query = Member::query()
             ->with('scoutUnit')
+            ->where('status', 'active')
             ->orderByDesc('registered_at')
             ->orderByDesc('created_at');
 
@@ -385,29 +386,28 @@ class HomeController extends Controller
 
     private function teamMembersTable(): array
     {
-        return [
-            [
-                'nom' => 'Kezimana Fiona',
-                'unite' => 'Route',
-                'role' => 'Chef',
-                'contact' => null,
-                'statut' => 'En attente',
-            ],
-            [
-                'nom' => 'Chris hhh',
-                'unite' => 'Amical',
-                'role' => 'Chef',
-                'contact' => null,
-                'statut' => 'En attente',
-            ],
-            [
-                'nom' => 'Misago',
-                'unite' => 'Amical',
-                'role' => 'Chef',
-                'contact' => '+25779759341',
-                'statut' => 'En attente',
-            ],
-        ];
+        if (!Schema::hasTable('members')) {
+            return [];
+        }
+
+        return Member::query()
+            ->with('scoutUnit')
+            ->where('status', 'active')
+            ->orderByRaw("CASE WHEN member_function IS NULL OR member_function = 'Membre' THEN 1 ELSE 0 END")
+            ->orderBy('member_function')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get()
+            ->map(function (Member $member) {
+                return [
+                    'nom' => $member->full_name,
+                    'unite' => $member->scoutUnit->name ?? 'Sans unite',
+                    'role' => $member->member_function ?: 'Membre',
+                    'contact' => $member->phone ?: $member->email,
+                    'statut' => 'Actif',
+                ];
+            })
+            ->all();
     }
 
     private function aboutValues(): array
@@ -519,15 +519,11 @@ class HomeController extends Controller
     {
         $messages = [];
 
-        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['parent_name'] ?? null)) {
+        if ($this->requiresParentContact($unit) && blank($validated['parent_name'] ?? null)) {
             $messages['parent_name'] = 'Le parent ou tuteur est obligatoire pour cette unite.';
         }
 
-        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_relationship'] ?? null)) {
-            $messages['guardian_relationship'] = 'Le lien de parente est obligatoire pour cette unite.';
-        }
-
-        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_phone'] ?? null)) {
+        if ($this->requiresParentContact($unit) && blank($validated['guardian_phone'] ?? null)) {
             $messages['guardian_phone'] = 'Le telephone du tuteur est obligatoire pour cette unite.';
         }
 
@@ -538,6 +534,11 @@ class HomeController extends Controller
         if ($messages !== []) {
             throw ValidationException::withMessages($messages);
         }
+    }
+
+    private function requiresParentContact(ScoutUnit $unit): bool
+    {
+        return in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m'], true);
     }
 
     private function resolveRegistrationUnit(array $validated): ?ScoutUnit

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\ScoutUnit;
+use App\Support\MemberRegistrationReview;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -84,22 +85,27 @@ class MemberController extends Controller
 
     public function approve(Member $member)
     {
+        $this->authorizeRegistrationReview($member);
+
         $member->update([
             'status' => 'active',
             'approved_at' => now(),
         ]);
 
-        return redirect()->route('admin.members.index')
+        return redirect()->back()
             ->with('success', 'Membre approuve avec succes.');
     }
 
     public function reject(Member $member)
     {
+        $this->authorizeRegistrationReview($member);
+
         $member->update([
             'status' => 'inactive',
+            'approved_at' => null,
         ]);
 
-        return redirect()->route('admin.members.index')
+        return redirect()->back()
             ->with('success', 'Membre rejete avec succes.');
     }
 
@@ -168,15 +174,11 @@ class MemberController extends Controller
     {
         $messages = [];
 
-        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['parent_name'] ?? null)) {
+        if ($this->requiresParentContact($unit) && blank($validated['parent_name'] ?? null)) {
             $messages['parent_name'] = 'Le parent ou tuteur est obligatoire pour cette unite.';
         }
 
-        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_relationship'] ?? null)) {
-            $messages['guardian_relationship'] = 'Le lien de parente est obligatoire pour cette unite.';
-        }
-
-        if (in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m', 'grappe'], true) && blank($validated['guardian_phone'] ?? null)) {
+        if ($this->requiresParentContact($unit) && blank($validated['guardian_phone'] ?? null)) {
             $messages['guardian_phone'] = 'Le telephone du tuteur est obligatoire pour cette unite.';
         }
 
@@ -186,6 +188,20 @@ class MemberController extends Controller
 
         if ($messages !== []) {
             throw ValidationException::withMessages($messages);
+        }
+    }
+
+    private function requiresParentContact(ScoutUnit $unit): bool
+    {
+        return in_array($unit->slug, ['meute', 'troupe-f', 'troupe-m'], true);
+    }
+
+    private function authorizeRegistrationReview(Member $member): void
+    {
+        $access = MemberRegistrationReview::forUser(auth()->user());
+
+        if (!MemberRegistrationReview::canReviewMember($access, $member)) {
+            abort(403, 'Vous ne pouvez valider que les inscriptions autorisees pour votre unite.');
         }
     }
 }

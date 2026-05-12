@@ -10,7 +10,21 @@
             <h2><i class="fa-solid fa-calendar-days"></i> Evenements et agenda</h2>
             <p style="color:var(--gray-500);font-size:.84rem;margin-top:.25rem;">Planning dynamique des unites.</p>
         </div>
-        <a href="{{ route('admin.program-events.create') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nouvel evenement</a>
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+            <form method="GET" action="{{ route('admin.program-events.index') }}" style="display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;">
+                <select name="scout_unit_id" class="form-select" style="min-width:220px;">
+                    <option value="">Toutes les unites</option>
+                    @foreach($units as $unit)
+                        <option value="{{ $unit->id }}" @selected((string) $selectedUnitId === (string) $unit->id)>{{ $unit->name }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-filter"></i> Filtrer</button>
+                @if($selectedUnitId)
+                    <a href="{{ route('admin.program-events.index') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i> Reinitialiser</a>
+                @endif
+            </form>
+            <a href="{{ route('admin.program-events.create', array_filter(['scout_unit_id' => $selectedUnitId])) }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nouvel evenement</a>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-wrap">

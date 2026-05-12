@@ -4,7 +4,7 @@
         <select name="scout_unit_id" class="form-select">
             <option value="">Toutes les unites</option>
             @foreach($units as $unit)
-                <option value="{{ $unit->id }}" @selected((string) old('scout_unit_id', $programEvent->scout_unit_id ?? '') === (string) $unit->id)>{{ $unit->name }}</option>
+                <option value="{{ $unit->id }}" @selected((string) old('scout_unit_id', $programEvent->scout_unit_id ?? $selectedUnitId ?? '') === (string) $unit->id)>{{ $unit->name }}</option>
             @endforeach
         </select>
         @error('scout_unit_id') <span class="form-error">{{ $message }}</span> @enderror
@@ -54,5 +54,5 @@
 
 <div style="margin-top:1.5rem;display:flex;gap:.75rem;flex-wrap:wrap;">
     <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
-    <a href="{{ route('admin.program-events.index') }}" class="btn btn-secondary">Annuler</a>
+    <a href="{{ route('admin.program-events.index', array_filter(['scout_unit_id' => old('scout_unit_id', $programEvent->scout_unit_id ?? $selectedUnitId ?? null)])) }}" class="btn btn-secondary">Annuler</a>
 </div>

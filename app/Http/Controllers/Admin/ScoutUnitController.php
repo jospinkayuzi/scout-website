@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ScoutUnit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 class ScoutUnitController extends Controller
@@ -12,7 +13,7 @@ class ScoutUnitController extends Controller
     public function index()
     {
         $units = ScoutUnit::query()
-            ->withCount(['members', 'publications', 'programEvents', 'galleryItems'])
+            ->withCount(['members', 'publications', 'programEvents'])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(12);
@@ -35,7 +36,7 @@ class ScoutUnitController extends Controller
 
     public function edit(ScoutUnit $scoutUnit)
     {
-        $scoutUnit->loadCount(['galleryItems', 'publications', 'programEvents', 'members']);
+        $scoutUnit->loadCount(['programEvents']);
 
         return view('admin.scout-units.edit', compact('scoutUnit'));
     }
@@ -69,9 +70,30 @@ class ScoutUnitController extends Controller
             'accent_color' => ['nullable', 'string', 'max:120'],
             'leader_name' => ['nullable', 'string', 'max:255'],
             'schedule' => ['nullable', 'string', 'max:255'],
+            'planned_activities' => ['nullable', 'array', 'max:3'],
+            'planned_activities.*.name' => ['nullable', 'string', 'max:255'],
+            'planned_activities.*.responsible' => ['nullable', 'string', 'max:255'],
+            'planned_activities.*.time' => ['nullable', 'string', 'max:100'],
             'gender_scope' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        $validated['planned_activities'] = collect($validated['planned_activities'] ?? [])
+            ->take(3)
+            ->map(function ($activity) {
+                return [
+                    'name' => trim((string) Arr::get($activity, 'name', '')),
+                    'responsible' => trim((string) Arr::get($activity, 'responsible', '')),
+                    'time' => trim((string) Arr::get($activity, 'time', '')),
+                ];
+            })
+            ->filter(fn ($activity) => filled($activity['name']) || filled($activity['responsible']) || filled($activity['time']))
+            ->values()
+            ->all();
+
+        if ($validated['planned_activities'] === []) {
+            $validated['planned_activities'] = null;
+        }
 
         $validated['is_active'] = $request->boolean('is_active');
 

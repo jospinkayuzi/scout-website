@@ -11,42 +11,53 @@ class ProgramEventController extends Controller
 {
     public function index()
     {
+        $selectedUnitId = request()->integer('scout_unit_id') ?: null;
+        $units = ScoutUnit::query()->where('is_active', true)->orderBy('sort_order')->get();
+
         $programEvents = ProgramEvent::query()
             ->with('scoutUnit')
+            ->when($selectedUnitId, fn ($query) => $query->where('scout_unit_id', $selectedUnitId))
             ->orderBy('event_date')
             ->orderBy('sort_order')
-            ->paginate(18);
+            ->paginate(18)
+            ->withQueryString();
 
-        return view('admin.program-events.index', compact('programEvents'));
+        return view('admin.program-events.index', compact('programEvents', 'units', 'selectedUnitId'));
     }
 
     public function create()
     {
         $units = ScoutUnit::query()->where('is_active', true)->orderBy('sort_order')->get();
+        $selectedUnitId = request()->integer('scout_unit_id') ?: null;
 
-        return view('admin.program-events.create', compact('units'));
+        return view('admin.program-events.create', compact('units', 'selectedUnitId'));
     }
 
     public function store(Request $request)
     {
-        ProgramEvent::create($this->validatedData($request));
+        $programEvent = ProgramEvent::create($this->validatedData($request));
 
-        return redirect()->route('admin.program-events.index')
+        return redirect()->route('admin.program-events.index', array_filter([
+            'scout_unit_id' => $programEvent->scout_unit_id,
+        ]))
             ->with('success', 'Evenement cree avec succes.');
     }
 
     public function edit(ProgramEvent $programEvent)
     {
         $units = ScoutUnit::query()->where('is_active', true)->orderBy('sort_order')->get();
+        $selectedUnitId = $programEvent->scout_unit_id;
 
-        return view('admin.program-events.edit', compact('programEvent', 'units'));
+        return view('admin.program-events.edit', compact('programEvent', 'units', 'selectedUnitId'));
     }
 
     public function update(Request $request, ProgramEvent $programEvent)
     {
         $programEvent->update($this->validatedData($request));
 
-        return redirect()->route('admin.program-events.index')
+        return redirect()->route('admin.program-events.index', array_filter([
+            'scout_unit_id' => $programEvent->scout_unit_id,
+        ]))
             ->with('success', 'Evenement mis a jour avec succes.');
     }
 

@@ -33,6 +33,8 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middle
 
 Route::prefix('admin')->middleware(['auth', 'permission:voir_tableau_bord'])->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('members/{member}/approve', [MemberController::class, 'approve'])->name('members.approve');
+    Route::post('members/{member}/reject', [MemberController::class, 'reject'])->name('members.reject');
 
     Route::middleware('permission:gerer_utilisateurs')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
@@ -44,8 +46,6 @@ Route::prefix('admin')->middleware(['auth', 'permission:voir_tableau_bord'])->na
 
     Route::middleware('permission:gerer_membres')->group(function () {
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
-        Route::post('members/{member}/approve', [MemberController::class, 'approve'])->name('members.approve');
-        Route::post('members/{member}/reject', [MemberController::class, 'reject'])->name('members.reject');
         Route::post('members/{member}/reactivate', [MemberController::class, 'reactivate'])->name('members.reactivate');
         Route::post('members/{member}/promote-to-maitrise', [MemberController::class, 'promoteToMaitrise'])->name('members.promote-to-maitrise');
     });
